@@ -2,9 +2,6 @@
 
 #include "util/types.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 typedef struct mat_u8
 {
     usize rows;

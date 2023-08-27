@@ -98,11 +98,13 @@ void rand_seed(u64 seed)
 }
 
 /**
- * Generate a random f32 between 0 and 1 from the uniform distribution
+ * Generate a random f32 in the range [min, max] from the uniform distribution
  */
-f32 rand_f32_uniform()
+f32 rand_f32_uniform(f32 min, f32 max)
 {
+    ASSERT(max > min);
     f32 result = (f32)pcg32_rand() / (f32)UINT32_MAX;
+    result = min + result * (max - min);
     return result;
 }
 
@@ -134,8 +136,8 @@ f32 rand_f32_gauss(f32 mean, f32 std_dev)
         do
         {
             // Pick uniformly random points and move into the range [-1.0, 1.0]
-            x = 2.0f*rand_f32_uniform() - 1.0f;
-            y = 2.0f*rand_f32_uniform() - 1.0f;
+            x = 2.0f*rand_f32_uniform(0.0f, 1.0f) - 1.0f;
+            y = 2.0f*rand_f32_uniform(0.0f, 1.0f) - 1.0f;
             s = x*x + y*y;
         } while(s >= 1 || s == 0);
 
@@ -150,5 +152,25 @@ f32 rand_f32_gauss(f32 mean, f32 std_dev)
 
     // Transform result based on desired mean and standard deviation
     result = result*std_dev + mean;
+    return result;
+}
+
+vec_f32 randn_f32_uniform(f32 min, f32 max, usize n)
+{
+    vec_f32 result = vec_f32_zeros(n);
+
+    for (usize i = 0; i < n; ++i)
+        result.data[i] = rand_f32_uniform(min, max);
+    
+    return result;
+}
+
+vec_f32 randn_f32_gauss(f32 mean, f32 std_dev, usize n)
+{
+    vec_f32 result = vec_f32_zeros(n);
+
+    for (usize i = 0; i < n; ++i)
+        result.data[i] = rand_f32_gauss(mean, std_dev);
+
     return result;
 }

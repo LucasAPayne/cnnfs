@@ -1,5 +1,8 @@
 #include "mat_u8.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 mat_u8 mat_u8_init(usize rows, usize cols, u8* data)
 {
     mat_u8 result = {0};
@@ -52,7 +55,7 @@ void mat_u8_print(mat_u8 m)
     for (usize i = 0; i < m.rows; ++i)
     {
         printf("[");
-        for (size_t j = 0; j < m.cols; ++j)
+        for (usize j = 0; j < m.cols; ++j)
         {
             if (j != 0) printf(", ");
             printf("%*hhu", width, mat_u8_at(m, i, j));
@@ -104,10 +107,10 @@ mat_u8 mat_u8_add(mat_u8 a, mat_u8 b)
      * or must be the same size in one dimension while one matrix is a row/column vector.
      * In the latter case, add the row/column vector across the matrix
      */
-    b32 a_col_vec = a.cols == 1;
-    b32 a_row_vec = a.rows == 1;
-    b32 b_col_vec = b.cols == 1;
-    b32 b_row_vec = b.rows == 1;
+    b32 a_col_vec = (a.cols == 1);
+    b32 a_row_vec = (a.rows == 1);
+    b32 b_col_vec = (b.cols == 1);
+    b32 b_row_vec = (b.rows == 1);
     b32 valid_sizes = ((a.rows == b.rows)       && (a.cols == b.cols))
                    || ((a_col_vec || b_col_vec) && (a.rows == b.rows))
                    || ((a_row_vec || b_row_vec) && (a.cols == b.cols));

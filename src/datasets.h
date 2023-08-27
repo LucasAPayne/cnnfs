@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/matrix.h"
+#include "math/cnnfs_math.h"
 #include "util/types.h"
 
 // Create spiral dataset by specifying the number of samples and classes

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/matrix.h"
+#include "math/cnnfs_math.h"
 
 // Dense, or fully-connected, layer, where each neuron in the layer
 // is connected to each neuron from the previous and next layers

@@ -1,8 +1,10 @@
 #include "datasets.h"
 #include "dense_layer.h"
-#include "math/matrix.h"
+#include "math/cnnfs_math.h"
 #include "util/rng.h"
 #include "util/types.h"
+
+#include <stdio.h> // getchar
 
 int main()
 {

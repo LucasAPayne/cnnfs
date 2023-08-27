@@ -1,5 +1,8 @@
 #include "mat_f32.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 mat_f32 mat_f32_init(usize rows, usize cols, f32* data)
 {
     mat_f32 result = {0};
@@ -52,7 +55,7 @@ void mat_f32_print(mat_f32 m)
     for (usize i = 0; i < m.rows; ++i)
     {
         printf("[");
-        for (size_t j = 0; j < m.cols; ++j)
+        for (usize j = 0; j < m.cols; ++j)
         {
             if (j != 0) printf(", ");
             printf("%*f", width, mat_f32_at(m, i, j));
