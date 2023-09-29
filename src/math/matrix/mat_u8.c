@@ -25,15 +25,55 @@ mat_u8 mat_u8_zeros(usize rows, usize cols)
     return result;
 }
 
-
-u8 mat_u8_at(mat_u8 m, usize row, usize col)
+mat_u8 mat_u8_full(usize rows, usize cols, u8 fill_value)
 {
-    return m.data[m.cols*row + col];
+    mat_u8 m = mat_u8_zeros(rows, cols);
+
+    for (usize row = 0; row < m.rows; ++row)
+    {
+        for (usize col = 0; col < m.cols; ++col)
+            mat_u8_set_val(&m, row, col, fill_value);
+    }
+
+    return m;
 }
 
-void mat_u8_set_val(mat_u8* m, usize row, usize column, u8 val)
+void mat_u8_set_row(mat_u8* m, vec_u8 v, usize row)
 {
-    m->data[m->cols*row + column] = val;
+    // To set a row, the vector must have the same number of elements as
+    // the matrix has columns
+    ASSERT(m->cols == v.elements);
+
+    for (usize col = 0; col < m->cols; ++col)
+        mat_u8_set_val(m, row, col, v.data[col]);
+}
+
+void mat_u8_set_col(mat_u8* m, vec_u8 v, usize col)
+{
+    // To set a column, the vector must have the same number of elemnts as
+    // the matrix has rows
+    ASSERT(m->rows == v.elements);
+
+    for (usize row = 0; row < m->rows; ++row)
+        mat_u8_set_val(m, row, col, v.data[row]);
+}
+
+void mat_u8_set_row_range(mat_u8* m, vec_u8 v, usize row, usize row_offset)
+{
+    // There must be enough columns after the offset to accommodate the vector
+    ASSERT(m->cols >= v.elements + row_offset);
+
+    for (usize i = 0; i < v.elements; ++i)
+        mat_u8_set_val(m, row, row_offset + i, v.data[i]);
+}
+
+void mat_u8_set_col_range(mat_u8* m, vec_u8 v, usize col, usize col_offset)
+{
+    // There must be enough rows after the offset to accomodate the vector
+    ASSERT(m->rows >= v.elements + col_offset);
+
+    for (usize i = 0; i < v.elements; ++i)
+        mat_u8_set_val(m, col_offset + i, col, v.data[i]);
 }
 
 void mat_u8_print(mat_u8 m)
@@ -164,5 +204,24 @@ mat_u8 mat_u8_mul(mat_u8 a, mat_u8 b)
             mat_u8_set_val(&result, i, j, sum);
         }
     }
+    return result;
+}
+
+mat_u8 mat_u8_had(mat_u8 a, mat_u8 b)
+{
+    ASSERT(a.rows == b.rows);
+    ASSERT(a.cols == b.cols);
+
+    mat_u8 result = mat_u8_zeros(a.rows, a.cols);
+
+    for (usize row = 0; row < result.rows; ++row)
+    {
+        for (usize col = 0; col < result.cols; ++col)
+        {
+            u8 val = mat_u8_at(a, row, col) * mat_u8_at(b, row, col);
+            mat_u8_set_val(&result, row, col, val);
+        }
+    }
+
     return result;
 }

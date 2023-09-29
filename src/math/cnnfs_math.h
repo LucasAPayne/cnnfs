@@ -21,3 +21,21 @@ inline f32 cos_f32(f32 x)
     f32 result = cosf(x);
     return result;
 }
+
+inline vec_f32 sin_vec_f32(vec_f32 v)
+{
+    vec_f32 result = vec_f32_zeros(v.elements);
+    for (usize i = 0; i < v.elements; ++i)
+        result.data[i] = sin_f32(v.data[i]);
+    
+    return result;
+}
+
+inline vec_f32 cos_vec_f32(vec_f32 v)
+{
+    vec_f32 result = vec_f32_zeros(v.elements);
+    for (usize i = 0; i < v.elements; ++i)
+        result.data[i] = cos_f32(v.data[i]);
+    
+    return result;
+}

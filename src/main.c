@@ -11,8 +11,8 @@ int main()
     rand_seed(123);
 
     mat_f32 data;
-    mat_u8 labels;
-    create_spiral_data(100, 3, &data, &labels);
+    vec_u8 labels;
+    create_spiral_data(10, 3, &data, &labels);
 
     f32 weight_data[] =
     {

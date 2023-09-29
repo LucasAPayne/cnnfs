@@ -1,4 +1,5 @@
 #include "mat_f32.h"
+#include "vector/vec_f32.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,15 +26,55 @@ mat_f32 mat_f32_zeros(usize rows, usize cols)
     return result;
 }
 
-
-f32 mat_f32_at(mat_f32 m, usize row, usize col)
+mat_f32 mat_f32_full(usize rows, usize cols, f32 fill_value)
 {
-    return m.data[m.cols*row + col];
+    mat_f32 m = mat_f32_zeros(rows, cols);
+
+    for (usize row = 0; row < m.rows; ++row)
+    {
+        for (usize col = 0; col < m.cols; ++col)
+            mat_f32_set_val(&m, row, col, fill_value);
+    }
+
+    return m;
 }
 
-void mat_f32_set_val(mat_f32* m, usize row, usize column, f32 val)
+void mat_f32_set_row(mat_f32* m, vec_f32 v, usize row)
 {
-    m->data[m->cols*row + column] = val;
+    // To set a row, the vector must have the same number of elements as
+    // the matrix has columns
+    ASSERT(m->cols == v.elements);
+
+    for (usize col = 0; col < m->cols; ++col)
+        mat_f32_set_val(m, row, col, v.data[col]);
+}
+
+void mat_f32_set_col(mat_f32* m, vec_f32 v, usize col)
+{
+    // To set a column, the vector must have the same number of elemnts as
+    // the matrix has rows
+    ASSERT(m->rows == v.elements);
+
+    for (usize row = 0; row < m->rows; ++row)
+        mat_f32_set_val(m, row, col, v.data[row]);
+}
+
+void mat_f32_set_row_range(mat_f32* m, vec_f32 v, usize row, usize row_offset)
+{
+    // There must be enough columns after the offset to accommodate the vector
+    ASSERT(m->cols >= v.elements + row_offset);
+
+    for (usize i = 0; i < v.elements; ++i)
+        mat_f32_set_val(m, row, row_offset + i, v.data[i]);
+}
+
+void mat_f32_set_col_range(mat_f32* m, vec_f32 v, usize col, usize col_offset)
+{
+    // There must be enough rows after the offset to accomodate the vector
+    ASSERT(m->rows >= v.elements + col_offset);
+
+    for (usize i = 0; i < v.elements; ++i)
+        mat_f32_set_val(m, col_offset + i, col, v.data[i]);
 }
 
 void mat_f32_print(mat_f32 m)
@@ -164,5 +205,24 @@ mat_f32 mat_f32_mul(mat_f32 a, mat_f32 b)
             mat_f32_set_val(&result, i, j, sum);
         }
     }
+    return result;
+}
+
+mat_f32 mat_f32_had(mat_f32 a, mat_f32 b)
+{
+    ASSERT(a.rows == b.rows);
+    ASSERT(a.cols == b.cols);
+
+    mat_f32 result = mat_f32_zeros(a.rows, a.cols);
+
+    for (usize row = 0; row < result.rows; ++row)
+    {
+        for (usize col = 0; col < result.cols; ++col)
+        {
+            f32 val = mat_f32_at(a, row, col) * mat_f32_at(b, row, col);
+            mat_f32_set_val(&result, row, col, val);
+        }
+    }
+
     return result;
 }
