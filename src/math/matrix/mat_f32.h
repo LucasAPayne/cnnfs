@@ -36,6 +36,8 @@ void mat_f32_set_col_range(mat_f32* m, vec_f32 v, usize col, usize col_offset);
 
 void mat_f32_print(mat_f32 m);
 
+mat_f32 mat_f32_scale(mat_f32 m, f32 value);
+
 mat_f32 mat_f32_add(mat_f32 a, mat_f32 b);
 mat_f32 mat_f32_mul(mat_f32 a, mat_f32 b);
 

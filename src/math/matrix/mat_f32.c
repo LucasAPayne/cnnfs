@@ -82,27 +82,43 @@ void mat_f32_print(mat_f32 m)
     int width = 0;
 
     // Compute max width needed
-    for (usize i = 0; i < m.rows; ++i)
+    for (usize row = 0; row < m.rows; ++row)
     {
-        for (usize j = 0; j < m.cols; ++j)
+        for (usize col = 0; col < m.cols; ++col)
         {
-            int w = snprintf(NULL, 0, "%f", mat_f32_at(m, i, j));
+            int w = snprintf(NULL, 0, "%f", mat_f32_at(m, row, col));
             if (width < w)
                 width = w;
         }
     }
 
     // Print
-    for (usize i = 0; i < m.rows; ++i)
+    for (usize row = 0; row < m.rows; ++row)
     {
         printf("[");
-        for (usize j = 0; j < m.cols; ++j)
+        for (usize col = 0; col < m.cols; ++col)
         {
-            if (j != 0) printf(", ");
-            printf("%*f", width, mat_f32_at(m, i, j));
+            if (col != 0) printf(", ");
+            printf("%*f", width, mat_f32_at(m, row, col));
         }
         printf("]\n");
     }
+}
+
+mat_f32 mat_f32_scale(mat_f32 m, f32 value)
+{
+    mat_f32 result = mat_f32_zeros(m.rows, m.cols);
+
+    for (usize row = 0; row < m.rows; ++row)
+    {
+        for (usize col = 0; col < m.cols; ++col)
+        {
+            f32 element = mat_f32_at(m, row, col);
+            mat_f32_set_val(&result, row, col, element*value);
+        }
+    }
+
+    return result;
 }
 
 // Stretch a row vector to be matrix with the same shape as target

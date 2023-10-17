@@ -155,7 +155,13 @@ f32 rand_f32_gauss(f32 mean, f32 std_dev)
     return result;
 }
 
-vec_f32 randn_f32_uniform(f32 min, f32 max, usize n)
+f32 rand_f32_gauss_standard(void)
+{
+    f32 result = rand_f32_gauss(0.0f, 1.0f);
+    return result;
+}
+
+vec_f32 rand_vec_f32_uniform(f32 min, f32 max, usize n)
 {
     vec_f32 result = vec_f32_zeros(n);
 
@@ -165,12 +171,62 @@ vec_f32 randn_f32_uniform(f32 min, f32 max, usize n)
     return result;
 }
 
-vec_f32 randn_f32_gauss(f32 mean, f32 std_dev, usize n)
+vec_f32 rand_vec_f32_gauss(f32 mean, f32 std_dev, usize n)
 {
     vec_f32 result = vec_f32_zeros(n);
 
     for (usize i = 0; i < n; ++i)
         result.data[i] = rand_f32_gauss(mean, std_dev);
 
+    return result;
+}
+
+vec_f32 rand_vec_f32_gauss_standard(usize n)
+{
+    vec_f32 result = vec_f32_zeros(n);
+
+    for (usize i = 0; i < n; ++i)
+        result.data[i] = rand_f32_gauss_standard();
+
+    return result;
+}
+
+mat_f32 rand_mat_f32_uniform(f32 min, f32 max, usize rows, usize cols)
+{
+    // TODO(lucas): Use set row/col range?
+    mat_f32 result = mat_f32_zeros(rows, cols);
+
+    for (usize row = 0; row < rows; ++row)
+    {
+        for (usize col = 0; col < cols; ++col)
+           mat_f32_set_val(&result, row, col, rand_f32_uniform(min, max));
+    }
+    
+    return result;
+}
+
+mat_f32 rand_mat_f32_gauss(f32 mean, f32 std_dev, usize rows, usize cols)
+{
+    mat_f32 result = mat_f32_zeros(rows, cols);
+
+    for (usize row = 0; row < rows; ++row)
+    {
+        for (usize col = 0; col < cols; ++col)
+           mat_f32_set_val(&result, row, col, rand_f32_gauss(mean, std_dev));
+    }
+    
+    return result;
+}
+
+mat_f32 rand_mat_f32_gauss_standard(usize rows, usize cols)
+{
+    mat_f32 result = mat_f32_zeros(rows, cols);
+
+    for (usize row = 0; row < rows; ++row)
+    {
+        for (usize col = 0; col < cols; ++col)
+           mat_f32_set_val(&result, row, col, rand_f32_gauss_standard());
+    }
+    
     return result;
 }

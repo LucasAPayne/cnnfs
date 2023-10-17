@@ -23,7 +23,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES  RUNTIME_OUTPUT_DIRECTORY_DEBUG
 if (MSVC)
     # C4100 and C4189 are about unused parameters/variables and are not particularly useful
     # /Oi: Generate intrinsic functions
-    target_compile_options(${PROJECT_NAME} PRIVATE /Oi /WX /W4 /wd4100 /wd4189 /wd4201 /wd4005)
+    target_compile_options(${PROJECT_NAME} PRIVATE /Oi /WX /W4 /wd4100 /wd4189 /wd4201 /wd4005 /D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug)

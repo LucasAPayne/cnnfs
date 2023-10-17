@@ -14,7 +14,7 @@ void create_spiral_data(usize samples, u8 classes, mat_f32* out_data, vec_u8* ou
 
         vec_f32 r = linspace(0.0f, 1.0f, samples);
 
-        vec_f32 rand_vals = vec_f32_scale(randn_f32_gauss(0.0f, 1.0f, samples), 0.2f);
+        vec_f32 rand_vals = vec_f32_scale(rand_vec_f32_gauss(0.0f, 1.0f, samples), 0.2f);
         vec_f32 t_range = linspace((f32)class*4.0f, ((f32)class + 1)*4.0f, samples);
         vec_f32 t = vec_f32_scale(vec_f32_add(t_range, rand_vals), 2.5f);
 
