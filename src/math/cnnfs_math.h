@@ -1,9 +1,8 @@
 #pragma once
 
 #include "util/types.h"
-#include "matrix/mat_f32.h"
-#include "matrix/mat_u8.h"
-#include "vector/vec_f32.h"
+#include "vector.h"
+#include "matrix.h"
 
 #include <math.h>
 

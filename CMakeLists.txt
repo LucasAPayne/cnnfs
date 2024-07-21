@@ -8,10 +8,12 @@ add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/src/datasets.c
     ${PROJECT_SOURCE_DIR}/src/dense_layer.c
     ${PROJECT_SOURCE_DIR}/src/math/cnnfs_math.c
-    ${PROJECT_SOURCE_DIR}/src/math/matrix/mat_f32.c
-    ${PROJECT_SOURCE_DIR}/src/math/matrix/mat_u8.c
-    ${PROJECT_SOURCE_DIR}/src/math/vector/vec_f32.c
-    ${PROJECT_SOURCE_DIR}/src/math/vector/vec_u8.c
+    ${PROJECT_SOURCE_DIR}/src/math/vector.c
+    ${PROJECT_SOURCE_DIR}/src/math/matrix.c
+    # ${PROJECT_SOURCE_DIR}/src/math/matrix/mat_f32.c
+    # ${PROJECT_SOURCE_DIR}/src/math/matrix/mat_u8.c
+    # ${PROJECT_SOURCE_DIR}/src/math/vector/vec_f32.c
+    # ${PROJECT_SOURCE_DIR}/src/math/vector/vec_u8.c
     ${PROJECT_SOURCE_DIR}/src/util/rng.c)
 
 target_include_directories(${PROJECT_NAME} PUBLIC

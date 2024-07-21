@@ -1,12 +1,8 @@
 @echo off
 
-pushd meta
-call build
-popd
-"meta/meta.exe" src/math/vector.meta src/math/matrix.meta
-
 IF NOT EXIST build mkdir build
 pushd build
 cmake ..
 cmake --build . -j
 popd
+copy /b "build\meta.exe" "meta.exe"
