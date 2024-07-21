@@ -1426,9 +1426,6 @@ internal void write_output_file(char* file_name, Program* program, Arena* arena)
             FunctionDef* def = (FunctionDef*)def_node->data;
             b32 numeric_found = false;
             b32 def_inline = (str_str(def->keywords.text, "inline") != 0);
-            int x = 0;
-            if (def_inline);
-                x = 5;
             FILE* dest = def_inline ? out_h : out_c;
             for (NumericType num_type = 1; num_type < NUM_TYPE_COUNT; ++num_type)
             {

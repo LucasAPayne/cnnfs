@@ -5,7 +5,6 @@
 #include "util/types.h"
 
 #include <stdio.h> // getchar
-#include <stdlib.h>
 
 int main()
 {
