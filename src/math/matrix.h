@@ -1,12 +1,20 @@
 #pragma once
 
 #include "../util/types.h"
+#include "matrix_cuda.h"
 
 #include "vector.h"
 
 #include <stdio.h>
 
 #include <stdlib.h>
+
+typedef enum Device
+{
+	DEVICE_CPU = 0,
+	DEVICE_GPU
+} Device;
+
 
 typedef struct mat_u8
 {
@@ -66,6 +74,7 @@ typedef struct mat_i64
 
 typedef struct mat_f32
 {
+	Device device;
 	usize rows;
 	usize cols;
 	f32* data;
@@ -86,7 +95,7 @@ mat_i8 mat_i8_init(usize rows, usize cols, i8* data);
 mat_i16 mat_i16_init(usize rows, usize cols, i16* data);
 mat_i32 mat_i32_init(usize rows, usize cols, i32* data);
 mat_i64 mat_i64_init(usize rows, usize cols, i64* data);
-mat_f32 mat_f32_init(usize rows, usize cols, f32* data);
+mat_f32 mat_f32_init(usize rows, usize cols, f32* data, Device device);
 mat_f64 mat_f64_init(usize rows, usize cols, f64* data);
 
 mat_u8 mat_u8_zeros(usize rows, usize cols);

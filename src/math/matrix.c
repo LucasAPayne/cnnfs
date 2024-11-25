@@ -80,12 +80,13 @@ mat_i64 mat_i64_init(usize rows, usize cols, i64* data)
 	return result;
 }
 
-mat_f32 mat_f32_init(usize rows, usize cols, f32* data)
+mat_f32 mat_f32_init(usize rows, usize cols, f32* data, Device device)
 {
 	mat_f32 result = {0};
 	result.rows = rows;
 	result.cols = cols;
 	result.data = data;
+	result.device = device;
 	
 	return result;
 }
@@ -1870,6 +1871,18 @@ mat_i64 mat_i64_add(mat_i64 a, mat_i64 b)
 	return result;
 }
 
+internal void mat_f32_add_cpu(mat_f32 a, mat_f32 b, mat_f32* result)
+{
+	for(usize i = 0; i < result->rows; ++i)
+	{
+		for(usize j = 0; j < result->cols; ++j)
+		{
+			f32 val = mat_f32_at(a, i, j) + mat_f32_at(b, i, j);
+			mat_f32_set_val(result, i, j, val);
+		}
+	}
+}
+
 mat_f32 mat_f32_add(mat_f32 a, mat_f32 b)
 {
 	
@@ -1881,7 +1894,6 @@ mat_f32 mat_f32_add(mat_f32 a, mat_f32 b)
 	||  ((a_col_vec_f32 ||  b_col_vec_f32) && (a.rows == b.rows))
 	||  ((a_row_vec_f32 ||  b_row_vec_f32) && (a.cols == b.cols));
 	ASSERT(valid_sizes);
-	
 	
 	
 	if((a.rows != b.rows) ||  (a.cols != b.cols))
@@ -1897,15 +1909,16 @@ mat_f32 mat_f32_add(mat_f32 a, mat_f32 b)
 	}
 	
 	mat_f32 result = mat_f32_zeros(a.rows, a.cols);
+	result.device = a.device;
 	
-	for(usize i = 0; i < result.rows; ++i)
+	ASSERT(a.device == b.device);
+	switch(a.device)
 	{
-		for(usize j = 0; j < result.cols; ++j)
-		{
-			f32 val = mat_f32_at(a, i, j) + mat_f32_at(b, i, j);
-			mat_f32_set_val(& result, i, j, val);
-		}
+		case DEVICE_CPU: mat_f32_add_cpu(a, b, &result); break;
+		case DEVICE_GPU: mat_f32_add_gpu(a, b, &result); break;
+		default: break; // TODO(lucas): Log "Unkown device: num" error. 
 	}
+
 	
 	return result;
 }
