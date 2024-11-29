@@ -86,7 +86,7 @@ mat_f32 mat_f32_init(usize rows, usize cols, f32* data, Device device)
 	result.rows = rows;
 	result.cols = cols;
 	result.data = data;
-	result.device = device;
+	result = mat_f32_to(result, device);
 	
 	return result;
 }
@@ -202,7 +202,7 @@ mat_f32 mat_f32_zeros(usize rows, usize cols)
 	mat_f32 result = {0};
 	result.rows = rows;
 	result.cols = cols;
-	
+
 	result.data = calloc(rows*cols, sizeof(f32));
 	ASSERT(result.data);
 	
@@ -1908,14 +1908,24 @@ mat_f32 mat_f32_add(mat_f32 a, mat_f32 b)
 			a = mat_f32_stretch_cols(a, b);
 	}
 	
-	mat_f32 result = mat_f32_zeros(a.rows, a.cols);
-	result.device = a.device;
+	mat_f32 result = {0};
 	
 	ASSERT(a.device == b.device);
 	switch(a.device)
 	{
-		case DEVICE_CPU: mat_f32_add_cpu(a, b, &result); break;
-		case DEVICE_GPU: mat_f32_add_gpu(a, b, &result); break;
+		case DEVICE_CPU:
+		{
+			mat_f32 c = mat_f32_zeros(a.rows, a.cols);
+			mat_f32_add_cpu(a, b, &c);
+			result = c;
+		} break;
+
+		case DEVICE_GPU: 
+		{
+			mat_f32 c = mat_f32_zeros_gpu(a.rows, a.cols);
+			mat_f32_add_gpu(a, b, c);
+			result = c;
+		} break;
 		default: break; // TODO(lucas): Log "Unkown device: num" error. 
 	}
 

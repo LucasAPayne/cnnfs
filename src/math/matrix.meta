@@ -1,8 +1,15 @@
 #include "../util/types.h"
+#include "matrix_cuda.h"
 #include "vector.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+
+enum Device
+{
+    DEVICE_CPU = 0,
+    DEVICE_GPU
+};
 
 struct mat
 {
@@ -14,7 +21,7 @@ struct mat
 @api_iface_begin
 
 mat mat_init(usize rows, usize cols, numeric* data);
-mat mat_zeros(usize rows, usize cols);
+mat mat_zeros(usize rows, usize cols, Device device);
 
 // Set values of a matrix row or column with same-size vector
 void mat_set_row(mat* m, vec v, usize row);
@@ -50,12 +57,13 @@ numeric mat_at(mat m, usize row, usize col)
     m->data[m->cols*row + col] = val;
 }
 
-mat mat_init(usize rows, usize cols, numeric* data)
+mat mat_init(usize rows, usize cols, numeric* data, Device device)
 {
     mat result = {0};
     result.rows = rows;
     result.cols = cols;
     result.data = data;
+    result = mat_to(result, device);
 
     return result;
 }
@@ -72,7 +80,7 @@ mat mat_zeros(usize rows, usize cols)
     return result;
 }
 
-mat mat_full(usize rows, usize cols, numeric fill_value)
+mat mat_full(usize rows, usize cols, numeric fill_value, Device device)
 {
     mat m = mat_zeros(rows, cols);
 
@@ -156,7 +164,7 @@ void mat_print(mat m)
     printf("]");
 }
 
-mat mat_scale(mat m, numeric value)
+mat mat_scale(mat m, numeric value, Device device)
 {
     mat result = mat_zeros(m.rows, m.cols);
 
