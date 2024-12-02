@@ -1,0 +1,484 @@
+#include "matrix.h"
+#include "cuda/matrix_cuda.h"
+#include "rng.cpp"
+
+template <typename T>
+internal mat<T> mat_init(usize rows, usize cols, T* data, Device device)
+{
+    mat<T> result = {};
+    result.rows = rows;
+    result.cols = cols;
+    result.data = data;
+
+    // TODO(lucas): Verify that the device and pointer location match?
+    result.device = device;
+
+    return result;
+}
+
+template <typename T>
+internal mat<T> mat_zeros(usize rows, usize cols, Device device)
+{
+    mat<T> result = {};
+
+    switch(device)
+    {
+        case DEVICE_CPU:
+        {
+            result.rows = rows;
+            result.cols = cols;
+            result.data = (T*)calloc(rows*cols, sizeof(T));
+        } break;
+
+        case DEVICE_GPU: result = mat_zeros_gpu<T>(rows, cols); break;
+
+        default: break;
+    }
+
+    ASSERT(result.data);
+    return result;
+}
+
+template <typename T>
+internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device)
+{
+    mat<T> result = {};
+    switch (device)
+    {
+        case DEVICE_CPU:
+        {
+            result = mat_zeros<T>(rows, cols);
+            for (usize row = 0; row < result.rows; ++row)
+            {
+                for (usize col = 0; col < result.cols; ++col)
+                    mat_set_val(result, row, col, fill_value);
+            }
+        } break;
+
+        case DEVICE_GPU: result = mat_full_gpu<T>(rows, cols, fill_value);
+
+        default: break;
+    }
+
+    return result;
+}
+
+mat<f32> mat_rand_uniform(f32 min, f32 max, usize rows, usize cols)
+{
+    // TODO(lucas): Use set row/col range?
+    mat<f32> result = mat_zeros<f32>(rows, cols);
+
+    for (usize row = 0; row < rows; ++row)
+    {
+        for (usize col = 0; col < cols; ++col)
+           mat_set_val(result, row, col, rand_f32_uniform(min, max));
+    }
+    
+    return result;
+}
+
+mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, usize rows, usize cols)
+{
+    mat<f32> result = mat_zeros<f32>(rows, cols);
+
+    for (usize row = 0; row < rows; ++row)
+    {
+        for (usize col = 0; col < cols; ++col)
+           mat_set_val(result, row, col, rand_f32_gauss(mean, std_dev));
+    }
+    
+    return result;
+}
+
+mat<f32> mat_rand_gauss_standard(usize rows, usize cols)
+{
+    mat<f32> result = mat_zeros<f32>(rows, cols);
+
+    for (usize row = 0; row < rows; ++row)
+    {
+        for (usize col = 0; col < cols; ++col)
+           mat_set_val(result, row, col, rand_f32_gauss_standard());
+    }
+    
+    return result;
+}
+
+template <typename T>
+internal void mat_set_row(mat<T> m, vec<T> data, usize row)
+{
+    // To set a row, the vector must have the same number of elements as
+    // the matrix has columns.
+    ASSERT(m.cols == data.elements);
+
+    switch (m.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize col = 0; col < m.cols; ++col)
+                mat_set_val(m, row, col, data.data[col]);
+        } break;
+
+        case DEVICE_GPU: mat_set_row_gpu(m, data, row); break;
+
+        default: break;
+    }
+}
+
+template <typename T>
+internal void mat_set_col(mat<T> m, vec<T> data, usize col)
+{
+    // To set a column, the vector must have the same number of elements as
+    // the matrix has rows.
+    ASSERT(m.rows == data.elements);
+
+    switch (m.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize row = 0; row < m.rows; ++col)
+                mat_set_val(m, row, col, data.data[row]);
+        } break;
+
+        case DEVICE_GPU: mat_set_col_gpu(m, data, col); break;
+
+        default: break;
+    }
+}
+
+template <typename T>
+internal void mat_set_row_range(mat<T> m, vec<T> data, usize row, usize row_offset)
+{
+    // There must be enough columns after the offset to accommodate the vector.
+    ASSERT(m.cols >= data.elements + row_offset);
+
+    switch (m.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize i = 0; i < data.elements; ++i)
+                mat_set_val(m, row, row_offset + i, data.data[i]);
+        } break;
+
+        case DEVICE_GPU: mat_set_row_range_gpu(m, data, row, row_offset); break;
+
+        default: break;
+    }
+}
+
+template <typename T>
+internal void mat_set_col_range(mat<T> m, vec<T> data, usize col, usize col_offset)
+{
+    ASSERT(m.rows >= data.elements + col_offset);
+
+    switch (m.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize i = 0; i < data.elements; ++i)
+                mat_set_val(m, col_offset + i, col, data.data[i]);
+        } break;
+
+        case DEVICE_GPU: mat_set_col_range_gpu(m, data, col, col_offset); break;
+
+        default: break;
+    }
+}
+
+// TODO(lucas): Make sure numbers are properly aligned, taking into account things like negative signs.
+template <typename T>
+internal void mat_print(mat<T> m)
+{
+    b32 was_on_gpu = m.device == DEVICE_GPU;
+    if (was_on_gpu)
+        mat_to(&m, DEVICE_CPU);
+
+    // Compute max width needed for printing
+    int width = 0;
+    for (usize row = 0; row < m.rows; ++row)
+    {
+        for (usize col = 0; col < m.cols; ++col)
+        {
+            int w = 0;
+            if constexpr      (std::is_same_v<T, u8>)  w = snprintf(0, 0, "%hhu", mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, u16>) w = snprintf(0, 0, "%hu",  mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, u32>) w = snprintf(0, 0, "%u",   mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, u64>) w = snprintf(0, 0, "%llu", mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, i8>)  w = snprintf(0, 0, "%hhd", mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, i16>) w = snprintf(0, 0, "%hd",  mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, i32>) w = snprintf(0, 0, "%d",   mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, i64>) w = snprintf(0, 0, "%lld", mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, f32>) w = snprintf(0, 0, "%f",   mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, f64>) w = snprintf(0, 0, "%f",   mat_at(m, row, col));
+            
+            if (width < w)
+                width = w;
+        }
+    }
+
+    // Print
+    printf("[");
+    for (usize row = 0; row < m.rows; ++row)
+    {
+        if (row > 0) printf(" ");
+        printf("[");
+        for (usize col = 0; col < m.cols; ++col)
+        {
+            if (col != 0) printf(", ");
+
+            if constexpr (std::is_same_v<T, u8>)       printf("%hhu", mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, u16>) printf("%hu",  mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, u32>) printf("%u",   mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, u64>) printf("%llu", mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, i8>)  printf("%hhd", mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, i16>) printf("%hd",  mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, i32>) printf("%d",   mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, i64>) printf("%lld", mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, f32>) printf("%f",   mat_at(m, row, col));
+            else if constexpr (std::is_same_v<T, f64>) printf("%f",   mat_at(m, row, col));
+        }
+        printf("]");
+        
+        if(row < m.rows - 1)
+            printf(",\n");
+    }
+    printf("]");
+
+    if (was_on_gpu)
+    mat_to(&m, DEVICE_GPU);
+}
+
+/* TODO(lucas): Overload this function to take a matrix or vector,
+ * and assert that it must be a column vector with the correct number of elements.
+ */
+// Stretch a column vector to be a matrix with the same shape as target
+// by copying the original column a number of times.
+template <typename T>
+internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
+{
+    ASSERT(orig.rows == target.rows);
+
+    mat<T> result = {};
+    switch (orig.device)
+    {
+        case DEVICE_CPU:
+        {
+            result = mat_zeros<T>(target.rows, target.cols);
+            for (usize i = 0; i < target.cols; ++i)
+            {
+                for (usize j = 0; j < target.cols; ++j)
+                {
+                    T val = mat_at(orig, i, 0);
+                    mat_set_val(result, i, j, val);
+                }
+            }
+        } break;
+
+        case DEVICE_GPU: result = mat_stretch_cols_gpu(orig, target);
+
+        default: break;
+    }
+
+    return result;
+}
+
+/* TODO(lucas): Overload this function to take a matrix or vector,
+ * and assert that it must be a row vector with the correct number of elements.
+ */
+// Stretch a row vector to be a matrix with the same shape as target
+// by copying the original row a number of times.
+template <typename T>
+internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
+{
+    ASSERT(orig.cols == target.cols);
+
+    mat<T> result = {};
+    switch (orig.device)
+    {
+        case DEVICE_CPU:
+        {
+            result = mat_zeros<T>(target.rows, target.cols);
+            for (usize i = 0; i < target.rows; ++i)
+            {
+                for (usize j = 0; j < target.cols; ++j)
+                {
+                    T val = mat_at(orig, 0, j);
+                    mat_set_val(result, i, j, val);
+                }
+            }
+        } break;
+
+        case DEVICE_GPU: result = mat_stretch_rows_gpu(orig, target);
+
+        default: break;
+    }
+
+    return result;
+}
+
+template <typename T>
+internal void mat_add(mat<T> a, mat<T> b)
+{
+    ASSERT(a.rows == b.rows);
+    ASSERT(a.cols == b.cols);
+    ASSERT(a.device == b.device);
+
+    switch (a.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize i = 0; i < a.rows; ++i)
+            {
+                for (usize j = 0; j < a.cols; ++j)
+                {
+                    T val = mat_at(a, i, j) + mat_at(b, i, j);
+                    mat_set_val(a, i, j, val);
+                }
+            }
+        } break;
+
+        case DEVICE_GPU: mat_add_gpu(a, b);
+
+        default: break;
+    }
+}
+
+template <typename T>
+internal void mat_free_data(mat<T> a)
+{
+    switch (a.device)
+    {
+        case DEVICE_CPU: free(a.data); break;
+        case DEVICE_GPU: mat_free_data_gpu(a);
+        default: break;
+    }
+}
+
+template <typename T>
+internal mat<T> mat_stretch_add(mat<T> a, mat<T> b)
+{
+    /* NOTE(lucas): Matrices must be the same size in both dimensions,
+     * or must be the same size in one dimension while one matrix is a row/column vector.
+     * In the latter case, add the row/column vector across the matrix
+     */
+	b32 a_col_vec = a.cols == 1;
+	b32 a_row_vec = a.rows == 1;
+	b32 b_col_vec = b.cols == 1;
+	b32 b_row_vec = b.rows == 1;
+	b32 valid_sizes = ((a.rows == b.rows) && (a.cols == b.cols))
+	|| ((a_col_vec || b_col_vec) && (a.rows == b.rows))
+	|| ((a_row_vec || b_row_vec) && (a.cols == b.cols));
+	ASSERT(valid_sizes);
+	
+    // TODO(lucas): Overwriting here causes a memory leak. Use a temp result instead.
+    mat<T> result = {};
+	if ((a.rows != b.rows) || (a.cols != b.cols))
+	{
+		if (b_row_vec)
+        {
+			result = mat_stretch_rows(b, a);
+            mat_add(result, a);
+        }
+		else if (b_col_vec)
+        {
+			result = mat_stretch_cols(b, a);
+            mat_add(result, a);
+        }
+		else if (a_row_vec)
+        {
+			result = mat_stretch_cols(a, b);
+            mat_add(result, b);
+        }
+		else if (a_col_vec)
+        {
+			result = mat_stretch_cols(a, b);
+            mat_add(result, b);
+        }
+	}
+
+    return result;
+}
+
+template <typename T>
+internal void mat_scale(mat<T> m, T value)
+{
+    switch(m.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize row = 0; row < m.rows; ++row)
+            {
+                for (usize col = 0; col < m.cols; ++col)
+                {
+                    T element = mat_at(m, row, col);
+                    mat_set_val(m, row, col, element*value);
+                }
+            }
+        } break;
+
+        case DEVICE_GPU: mat_scale_gpu(m, value);
+
+        default: break;
+    }
+}
+
+template <typename T>
+internal mat<T> mat_mul(mat<T> a, mat<T> b)
+{
+    // For multiplication to be valid, the number of columns in A must equal the number of rows in B
+    ASSERT(a.cols == b.rows);
+    ASSERT(a.device == b.device);
+
+    mat<T> result = {};
+    switch(a.device)
+    {
+        case DEVICE_CPU:
+        {
+            // Shape of output matrix is determined by the number of rows in A and the number of columns in B
+            result = mat_zeros<T>(a.rows, b.cols);
+            for (usize i = 0; i < result.rows; ++i)
+            {
+                for (usize j = 0; j < result.cols; ++j)
+                {
+                    T sum = 0;
+                    for (usize k = 0; k < a.cols; ++k)
+                        sum += mat_at(a, i, k) * mat_at(b, k, j);
+                    
+                    mat_set_val(result, i, j, sum);
+                }
+            }
+        } break;
+
+        case DEVICE_GPU: result = mat_mul_gpu(a, b); break;
+
+        default: break;
+    }
+
+    return result;
+}
+
+template <typename T>
+internal void mat_had(mat<T> a, mat<T> b)
+{
+    ASSERT(a.rows == b.rows);
+    ASSERT(a.cols == b.cols);
+    ASSERT(a.device == b.device);
+
+    switch (a.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize row = 0; row < a.rows; ++row)
+            {
+                for (usize col = 0; col < a.cols; ++col)
+                {
+                    T val = mat_at(a, row, col) * mat_at(b, row, col);
+                    mat_set_val(a, row, col, val);
+                }
+            }
+        } break;
+
+        case DEVICE_GPU: mat_had_gpu(a, b); break;
+
+        default: break;
+    }
+}

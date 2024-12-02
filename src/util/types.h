@@ -14,8 +14,6 @@
 #define global_variable static
 
 typedef uint32_t b32;
-#define false 0
-#define true 1
 
 typedef uint8_t  u8;
 typedef uint16_t u16;

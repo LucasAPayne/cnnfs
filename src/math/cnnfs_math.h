@@ -1,40 +1,42 @@
 #pragma once
 
 #include "util/types.h"
-#include "vector.h"
-#include "matrix.h"
+
+#include "vector.cpp"
+#include "matrix.cpp"
 
 #include <math.h>
 
 // Generate a sequence of n evenly-spaced numbers in the range [x1, x2]
-vec_f32 linspace(f32 x1, f32 x2, usize n);
+vec<f32> linspace(f32 x1, f32 x2, usize n, Device device=DEVICE_CPU);
+vec<f64> linspace(f64 x1, f64 x2, usize n, Device device=DEVICE_CPU);
 
-inline f32 sin_f32(f32 x)
+internal inline f32 sin_f32(f32 x)
 {
     f32 result = sinf(x);
     return result;
 }
 
-inline f32 cos_f32(f32 x)
+internal inline f64 sin_f64(f64 x)
+{
+    f64 result = sin(x);
+    return result;
+}
+
+internal inline f32 cos_f32(f32 x)
 {
     f32 result = cosf(x);
     return result;
 }
 
-inline vec_f32 sin_vec_f32(vec_f32 v)
+internal inline f64 cos_f64(f64 x)
 {
-    vec_f32 result = vec_f32_zeros(v.elements);
-    for (usize i = 0; i < v.elements; ++i)
-        result.data[i] = sin_f32(v.data[i]);
-    
+    f64 result = cos(x);
     return result;
 }
 
-inline vec_f32 cos_vec_f32(vec_f32 v)
-{
-    vec_f32 result = vec_f32_zeros(v.elements);
-    for (usize i = 0; i < v.elements; ++i)
-        result.data[i] = cos_f32(v.data[i]);
-    
-    return result;
-}
+vec<f32> sin_vec(vec<f32> v);
+vec<f64> sin_vec(vec<f64> v);
+
+vec<f32> cos_vec(vec<f32> v);
+vec<f64> cos_vec(vec<f64> v);

@@ -1,24 +1,19 @@
 cmake_minimum_required(VERSION 3.24)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-project(cnnfs LANGUAGES C CXX CUDA)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(C_SRC ${PROJECT_SOURCE_DIR}/src/main.c
-    ${PROJECT_SOURCE_DIR}/src/datasets.c
-    ${PROJECT_SOURCE_DIR}/src/dense_layer.c
-    ${PROJECT_SOURCE_DIR}/src/math/cnnfs_math.c
-    ${PROJECT_SOURCE_DIR}/src/math/vector.c
-    ${PROJECT_SOURCE_DIR}/src/math/matrix.c
-    ${PROJECT_SOURCE_DIR}/src/util/rng.c
-)
+project(cnnfs LANGUAGES CXX CUDA)
 
-set(CUDA_SRC ${PROJECT_SOURCE_DIR}/src/math/matrix.cu)
+set(C_SRC ${PROJECT_SOURCE_DIR}/src/main.cpp)
+set(CUDA_SRC ${PROJECT_SOURCE_DIR}/src/math/cuda/cnnfs_cuda.cu)
 
 add_executable(${PROJECT_NAME} ${C_SRC} ${CUDA_SRC})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/datasets
+    ${PROJECT_SOURCE_DIR}/src/util
     ${PROJECT_SOURCE_DIR}/src/math
 )
 
