@@ -2,15 +2,11 @@
 
 #include "cnnfs.h"
 
-/* TODO(lucas): For project:
- * Final prediction for each data point.
- * Compare each prediction with the labels.
- */
-
 // TODO(lucas): Get rid of atomic_add functions and fix matrix and vector sums.
 // TODO(lucas): Change capitalization to Device_CPU, Device_GPU for consistency.
 // TODO(lucas): Matrix and vector functions should still operate in-place, but also return the value for more expressiveness.
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
+// TODO(lucas): Look into CUDA warnings
 // TODO(lucas): Look into another way of specifying that some function templates are only valid for certain types,
 // besides just making multiple copies, to make for easier maintenance.
 // TODO(lucas): Some math and other functions should have an option of operating in-place or returning a copy.
@@ -45,7 +41,30 @@ int main(void)
     dense_layer_forward(&dense1, data);
     dense_layer_forward(&dense2, dense1.output);
 
+    mat_to(&dense2.output, DEVICE_CPU);
     mat_print(dense2.output);
+
+    // TODO(lucas): Add a function to find the max value(s) of a matrix as a whole or along an axis,
+    // and the index of the max value.
+    vec<u32> pred = vec_zeros<u32>(labels.elements, DEVICE_CPU);
+    for (usize i = 0; i < pred.elements; ++i)
+    {
+        vec<f32> confidence = mat_get_row(dense2.output, i);
+        f32 max_confidence = -1.0f;
+        u32 idx = 0;
+        for (u32 j = 0; j < confidence.elements; ++j)
+        {
+            max_confidence = max(max_confidence, confidence.data[j]);
+            if (max_confidence > confidence.data[j])
+                idx = j;
+        }
+        pred.data[i] = idx;
+    }
+
+    vec_to(&labels, DEVICE_CPU);
+    f32 acc = accuracy_score(labels, pred);
+
+    printf("\nAccuracy: %.2f%%\n", acc*100.0f);
 
     getchar();
     return 0;

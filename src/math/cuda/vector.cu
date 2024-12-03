@@ -91,9 +91,9 @@ __global__ internal void vec_sum_kernel(vec<T> v, T* out)
 
         if (idx < blockDim.x)
             shared_mem[idx] += shared_mem[idx + s];
-        
-        __syncthreads();
     }
+
+    __syncthreads();
 
     // Write block result to global memory.
     if (threadIdx.x == 0)
@@ -232,7 +232,7 @@ f64 vec_sum_gpu(vec<f64> v)
     sync_kernel();
 
     f64 result;
-    cuda_call(cudaMemcpy(&result, out, sizeof(f32), cudaMemcpyDeviceToHost));
+    cuda_call(cudaMemcpy(&result, out, sizeof(f64), cudaMemcpyDeviceToHost));
     cuda_call(cudaFree(out));
     
     return result;
@@ -249,7 +249,7 @@ u32 vec_sum_gpu(vec<u32> v)
     sync_kernel();
 
     u32 result;
-    cuda_call(cudaMemcpy(&result, out, sizeof(f32), cudaMemcpyDeviceToHost));
+    cuda_call(cudaMemcpy(&result, out, sizeof(u32), cudaMemcpyDeviceToHost));
     cuda_call(cudaFree(out));
     
     return result;
@@ -266,7 +266,7 @@ i32 vec_sum_gpu(vec<i32> v)
     sync_kernel();
 
     i32 result;
-    cuda_call(cudaMemcpy(&result, out, sizeof(f32), cudaMemcpyDeviceToDevice));
+    cuda_call(cudaMemcpy(&result, out, sizeof(i32), cudaMemcpyDeviceToHost));
     cuda_call(cudaFree(out));
     
     return result;
