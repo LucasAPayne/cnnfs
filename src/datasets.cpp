@@ -3,10 +3,10 @@
 #include "util/rng.h"
 
 // NOTE(lucas): Spiral dataset adapted from https://github.com/Sentdex/nnfs/blob/master/nnfs/datasets/spiral.py
-void create_spiral_data(usize samples, u8 classes, mat<f32>* out_data, vec<u8>* out_labels, Device device)
+void create_spiral_data(usize samples, u32 classes, mat<f32>* out_data, vec<u32>* out_labels, Device device)
 {
     *out_data = mat_zeros<f32>(samples*classes, 2, device);
-    *out_labels = vec_zeros<u8>(samples*classes, device);
+    *out_labels = vec_zeros<u32>(samples*classes, device);
 
     for (u8 i = 0; i < classes; ++i)
     {
@@ -27,7 +27,7 @@ void create_spiral_data(usize samples, u8 classes, mat<f32>* out_data, vec<u8>* 
         vec_had(sample_x, r);
         vec_had(sample_y, r);
 
-        vec<u8> class_vec = vec_full<u8>(samples, i, device);
+        vec<u32> class_vec = vec_full<u32>(samples, i, device);
         
         mat_set_col_range(*out_data, sample_x, 0, offset);
         mat_set_col_range(*out_data, sample_y, 1, offset);

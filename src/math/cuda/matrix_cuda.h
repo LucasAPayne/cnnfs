@@ -38,10 +38,20 @@ template <typename T>
 void mat_add_gpu(mat<T> a, mat<T> b);
 
 template <typename T>
-void mat_scale_gpu(mat<T> m, T value);
+void mat_scale_gpu(mat<T> m, T scale);
+
+template <typename T>
+void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis);
 
 template <typename T>
 mat<T> mat_mul_gpu(mat<T> a, mat<T> b);
 
 template <typename T>
 void mat_had_gpu(mat<T> a, mat<T> b);
+
+template <typename T>
+vec<T> mat_sum_gpu(mat<T>m, Axis axis);
+// vec<f32> mat_sum_gpu(mat<f32> m, Axis axis);
+// vec<f64> mat_sum_gpu(mat<f64> m, Axis axis);
+// vec<u32> mat_sum_gpu(mat<u32> m, Axis axis);
+// vec<i32> mat_sum_gpu(mat<i32> m, Axis axis);

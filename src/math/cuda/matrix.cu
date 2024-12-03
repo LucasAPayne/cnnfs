@@ -1,18 +1,31 @@
 #include "cuda_base.h"
 #include "matrix_cuda.h"
+#include "vector_cuda.h"
 
-struct ThreadLayout
+// TODO(lucas): Temporary
+template <typename T>
+internal vec<T> mat_get_row(mat<T> m, usize row)
 {
-    dim3 block_dim;
-    dim3 grid_dim;
-};
+    ASSERT(row < m.rows);
 
-internal ThreadLayout calc_thread_dim(usize rows, usize cols, int block_size_x=16, int block_size_y=16)
+    vec<T> result = {};
+    result.elements = m.cols;
+    result.device = m.device;
+    result.data = m.data + row*m.cols;
+
+    return result;
+}
+
+template <typename T>
+internal vec<T> mat_get_col(mat<T> m, usize col)
 {
-    ThreadLayout result = {};
-    result.block_dim = dim3(block_size_x, block_size_y);
-    result.grid_dim = dim3(((int)cols + result.block_dim.x - 1) / result.block_dim.x,
-                           ((int)rows + result.block_dim.y - 1) / result.block_dim.y);
+    ASSERT(col < m.cols);
+
+    vec<T> result = {};
+    result.elements = m.rows;
+    result.device = m.device;
+    result.data = m.data + col;
+
     return result;
 }
 
@@ -25,8 +38,8 @@ __global__ internal void mat_full_kernel(mat<T> result, T fill_value)
     if (row >= result.rows || col >= result.cols)
         return;
 
-    usize idx = row*result.cols + col;
-    result.data[idx] = fill_value;
+    usize i = row*result.cols + col;
+    result.data[i] = fill_value;
 }
 
 template <typename T>
@@ -37,8 +50,8 @@ __global__ internal void mat_set_row_kernel(mat<T> m, vec<T> v, usize row)
     if (col >= m.cols)
         return;
 
-    usize idx = row*m.cols + col;
-    m.data[idx] = v.data[col];
+    usize i = row*m.cols + col;
+    m.data[i] = v.data[col];
 }
 
 template <typename T>
@@ -49,8 +62,8 @@ __global__ internal void mat_set_col_kernel(mat<T> m, vec<T> v, usize col)
     if (row >= m.rows)
         return;
 
-    usize idx = row*m.cols + col;
-    m.data[idx] = v.data[row];
+    usize i = row*m.cols + col;
+    m.data[i] = v.data[row];
 }
 
 template <typename T>
@@ -61,8 +74,8 @@ __global__ internal void mat_set_row_range_kernel(mat<T> m, vec<T> v, usize row,
     if (col >= v.elements)
         return;
 
-    usize idx = m.cols*row + (row_offset + col);
-    m.data[idx] = v.data[col];
+    usize i = m.cols*row + (row_offset + col);
+    m.data[i] = v.data[col];
 }
 
 template <typename T>
@@ -73,8 +86,8 @@ __global__ internal void mat_set_col_range_kernel(mat<T> m, vec<T> v, usize col,
     if (row >= v.elements)
         return;
     
-    usize idx = m.cols*(col_offset + row) + col;
-    m.data[idx] = v.data[row];
+    usize i = m.cols*(col_offset + row) + col;
+    m.data[i] = v.data[row];
 }
 
 template <typename T>
@@ -110,8 +123,8 @@ __global__ internal void mat_add_kernel(mat<T> a, mat<T> b)
     if (row >= a.rows || col >= b.cols)
         return;
     
-    usize idx = a.cols*row + col;
-    a.data[idx] += b.data[idx];
+    usize i = a.cols*row + col;
+    a.data[i] += b.data[i];
 }
 
 template <typename T>
@@ -123,8 +136,8 @@ __global__ internal void mat_scale_kernel(mat<T> m, T value)
     if (row >= m.rows || col >= m.cols)
         return;
     
-    usize idx = m.cols*row + col;
-    m.data[idx] *= value;
+    usize i = m.cols*row + col;
+    m.data[i] *= value;
 }
 
 template <typename T>
@@ -153,8 +166,8 @@ __global__ internal void mat_had_kernel(mat<T> a, mat<T> b)
     if (row >= a.rows || col >= b.cols)
         return;
     
-    usize idx = a.cols*row + col;
-    a.data[idx] *= b.data[idx];
+    usize i = a.cols*row + col;
+    a.data[i] *= b.data[i];
 }
 
 template <typename T>
@@ -298,6 +311,37 @@ void mat_scale_gpu(mat<T> m, T value)
 }
 
 template <typename T>
+void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
+{
+    switch (axis)
+    {
+        case Axis_Rows:
+        {
+            for (usize i = 0; i < m.rows; ++i)
+            {
+                vec<T> row = mat_get_row(m, i);
+                T c;
+                cuda_call(cudaMemcpy(&c, scale.data + i, sizeof(T), cudaMemcpyDeviceToHost));
+                vec_scale_gpu(row, c);
+            }
+        } break;
+
+        case Axis_Cols:
+        {
+            for (usize i = 0; i < m.cols; ++i)
+            {
+                vec<T> col = mat_get_col(m, i);
+                T c;
+                cuda_call(cudaMemcpy(&c, scale.data + i, sizeof(T), cudaMemcpyDeviceToHost));
+                vec_scale_gpu(col, c);
+            }
+        } break;
+
+        default: break;
+    }
+}
+
+template <typename T>
 mat<T> mat_mul_gpu(mat<T> a, mat<T> b)
 {
     mat<T> result = mat_zeros_gpu<T>(a.rows, b.cols);
@@ -316,6 +360,41 @@ void mat_had_gpu(mat<T> a, mat<T> b)
     sync_kernel();
 }
 
+// TODO(lucas): Perform sums in parallel.
+template <typename T>
+vec<T> mat_sum_gpu(mat<T> m, Axis axis)
+{
+    vec<T> result = {};
+    switch (axis)
+    {
+        case Axis_Rows:
+        {
+            result = vec_zeros_gpu<T>(m.rows);
+            for (usize i = 0; i < m.rows; ++i)
+            {
+                vec<T> row = mat_get_row(m, i);
+                T sum = vec_sum_gpu(row);
+                cuda_call(cudaMemcpy(result.data + i, &sum, sizeof(T), cudaMemcpyHostToDevice));
+            }
+        } break;
+
+        case Axis_Cols:
+        {
+            result = vec_zeros_gpu<T>(m.cols);
+            for (usize i = 0; i < m.cols; ++i)
+            {
+                vec<T> col = mat_get_col(m, i);
+                T sum = vec_sum_gpu(col);
+                cuda_call(cudaMemcpy(result.data + i, &sum, sizeof(T), cudaMemcpyHostToDevice));
+            }
+        } break;
+
+        default: break;
+    }
+
+    return result;
+}
+
 #define MAT_TO(T) INST_TEMPLATE(mat_to, void, T, (mat<T>* m, Device device))
 #define MAT_FREE_DATA_GPU(T) INST_TEMPLATE(mat_free_data_gpu, void, T, (mat<T> m))
 #define MAT_ZEROS_GPU(T) INST_TEMPLATE(mat_zeros_gpu, mat<T>, T, (usize rows, usize cols))
@@ -327,9 +406,11 @@ void mat_had_gpu(mat<T> a, mat<T> b)
 #define MAT_STRETCH_COLS_GPU(T) INST_TEMPLATE(mat_stretch_cols_gpu, mat<T>, T, (mat<T> orig, mat<T> target))
 #define MAT_STRETCH_ROWS_GPU(T) INST_TEMPLATE(mat_stretch_rows_gpu, mat<T>, T, (mat<T> orig, mat<T> target))
 #define MAT_ADD_GPU(T) INST_TEMPLATE(mat_add_gpu, void, T, (mat<T> a, mat<T> b))
-#define MAT_SCALE_GPU(T) INST_TEMPLATE(mat_scale_gpu, void, T, (mat<T> m, T c))
+#define MAT_SCALE_GPU(T) INST_TEMPLATE(mat_scale_gpu, void, T, (mat<T> m, T scale))
+#define MAT_SCALE_GPU_VEC(T) INST_TEMPLATE(mat_scale_gpu, void, T, (mat<T> m, vec<T> scale, Axis axis))
 #define MAT_MUL_GPU(T) INST_TEMPLATE(mat_mul_gpu, mat<T>, T, (mat<T> a, mat<T> b))
 #define MAT_HAD_GPU(T) INST_TEMPLATE(mat_had_gpu, void, T, (mat<T> a, mat<T> b))
+#define MAT_SUM_GPU(T) INST_TEMPLATE(mat_sum_gpu, vec<T>, T, (mat<T> m, Axis axis))
 
 INST_ALL_TYPES(MAT_TO)
 INST_ALL_TYPES(MAT_FREE_DATA_GPU)
@@ -343,8 +424,15 @@ INST_ALL_TYPES(MAT_STRETCH_COLS_GPU)
 INST_ALL_TYPES(MAT_STRETCH_ROWS_GPU)
 INST_ALL_TYPES(MAT_ADD_GPU)
 INST_ALL_TYPES(MAT_SCALE_GPU)
+INST_ALL_TYPES(MAT_SCALE_GPU_VEC)
 INST_ALL_TYPES(MAT_MUL_GPU)
 INST_ALL_TYPES(MAT_HAD_GPU)
+// INST_ALL_TYPES(MAT_SUM_GPU)
+
+MAT_SUM_GPU(f32)
+MAT_SUM_GPU(f64)
+MAT_SUM_GPU(u32)
+MAT_SUM_GPU(i32)
 
 #undef MAT_TO
 #undef MAT_FREE_DATA_GPU
@@ -358,4 +446,6 @@ INST_ALL_TYPES(MAT_HAD_GPU)
 #undef MAT_STRETCH_ROWS_GPU
 #undef MAT_ADD_GPU
 #undef MAT_SCALE_GPU
+#undef MAT_SCALE_GPU_VEC
 #undef MAT_HAD_GPU
+#undef MAT_SUM_GPU

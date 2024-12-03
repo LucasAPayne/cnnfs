@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 3.24)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(cnnfs LANGUAGES CXX CUDA)
 
 set(C_SRC ${PROJECT_SOURCE_DIR}/src/main.cpp)
-set(CUDA_SRC ${PROJECT_SOURCE_DIR}/src/math/cuda/cnnfs_cuda.cu)
+set(CUDA_SRC
+    ${PROJECT_SOURCE_DIR}/src/math/cuda/activation.cu
+    ${PROJECT_SOURCE_DIR}/src/math/cuda/cnnfs_math.cu
+    ${PROJECT_SOURCE_DIR}/src/math/cuda/matrix.cu
+    ${PROJECT_SOURCE_DIR}/src/math/cuda/vector.cu
+)
 
 add_executable(${PROJECT_NAME} ${C_SRC} ${CUDA_SRC})
 

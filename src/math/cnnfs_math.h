@@ -2,10 +2,13 @@
 
 #include "util/types.h"
 
-#include "vector.cpp"
 #include "matrix.cpp"
+#include "vector.cpp"
 
 #include <math.h>
+
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 
 // Generate a sequence of n evenly-spaced numbers in the range [x1, x2]
 vec<f32> linspace(f32 x1, f32 x2, usize n, Device device=DEVICE_CPU);
@@ -40,3 +43,9 @@ vec<f64> sin_vec(vec<f64> v);
 
 vec<f32> cos_vec(vec<f32> v);
 vec<f64> cos_vec(vec<f64> v);
+
+void exp_vec(vec<f32> v);
+void exp_vec(vec<f64> v);
+
+void exp_mat(mat<f32> m);
+void exp_mat(mat<f64> m);

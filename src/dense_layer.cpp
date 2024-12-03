@@ -1,7 +1,7 @@
 #include "dense_layer.h"
 #include "util/rng.h"
 
-DenseLayer dense_layer_init(usize inputs, usize neurons, Device device)
+DenseLayer dense_layer_init(usize inputs, usize neurons, ActivationType activation, Device device)
 {
     DenseLayer layer = {0};
 
@@ -9,6 +9,7 @@ DenseLayer dense_layer_init(usize inputs, usize neurons, Device device)
     mat_to(&layer.weights, device);
     mat_scale(layer.weights, 0.01f);
     layer.biases = mat_zeros<f32>(1, neurons, device);
+    layer.activation = activation;
 
     return layer;
 }
@@ -19,4 +20,5 @@ void dense_layer_forward(DenseLayer* layer, mat<f32> input)
     mat<f32> temp = mat_stretch_add(layer->output, layer->biases);
     mat_free_data(layer->output);
     layer->output = temp;
+    activation_forward(layer->output, layer->activation);
 }

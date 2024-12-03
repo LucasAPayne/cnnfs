@@ -186,6 +186,25 @@ internal void vec_scale(vec<T> v, T c)
 }
 
 template <typename T>
+internal vec<T> vec_reciprocal(vec<T> v)
+{
+    switch (v.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize i = 0; i < v.elements; ++i)
+                v.data[i] = (T)1 / v.data[i];
+        } break;
+
+        case DEVICE_GPU: vec_reciprocal_gpu(v); break;
+
+        default: break;
+    }
+
+    return v;
+}
+
+template <typename T>
 internal void vec_had(vec<T> a, vec<T> b)
 {
     ASSERT(a.elements == b.elements);
@@ -203,4 +222,24 @@ internal void vec_had(vec<T> a, vec<T> b)
 
         default: break;
     }
+}
+
+template <typename T>
+internal T vec_sum(vec<T> v)
+{
+    T result = 0;
+    switch (v.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize i = 0; i < v.elements; ++i)
+                result += v.data[i];
+        } break;
+
+        case DEVICE_GPU: vec_sum_gpu(v); break;
+
+        default: break;
+    }
+
+    return result;
 }

@@ -126,3 +126,79 @@ vec<f64> cos_vec(vec<f64> v)
 
     return result;
 }
+
+void exp_vec(vec<f32> v)
+{
+    switch (v.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize i = 0; i < v.elements; ++i)
+                v.data[i] = expf(v.data[i]);
+        } break;
+
+        case DEVICE_GPU: exp_vec_gpu(v); break;
+
+        default: break;
+    }
+}
+
+void exp_vec(vec<f64> v)
+{
+    switch (v.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize i = 0; i < v.elements; ++i)
+                v.data[i] = exp(v.data[i]);
+        } break;
+
+        case DEVICE_GPU: exp_vec_gpu(v); break;
+
+        default: break;
+    }
+}
+
+void exp_mat(mat<f32> m)
+{
+    switch (m.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize col = 0; col < m.cols; ++col)
+            {
+                for (usize row = 0; row < m.rows; ++row)
+                {
+                    f32 val = expf(mat_at(m, row, col));
+                    mat_set_val(m, row, col, val);
+                }
+            }
+        } break;
+
+        case DEVICE_GPU: exp_mat_gpu(m); break;
+
+        default: break;
+    }
+}
+
+void exp_mat(mat<f64> m)
+{
+    switch (m.device)
+    {
+        case DEVICE_CPU:
+        {
+            for (usize col = 0; col < m.cols; ++col)
+            {
+                for (usize row = 0; row < m.rows; ++row)
+                {
+                    f64 val = exp(mat_at(m, row, col));
+                    mat_set_val(m, row, col, val);
+                }
+            }
+        } break;
+
+        case DEVICE_GPU: exp_mat_gpu(m); break;
+
+        default: break;
+    }
+}

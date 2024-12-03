@@ -27,8 +27,6 @@ vec<T> vec_zeros(usize elements, Device device=DEVICE_CPU);
 template <typename T>
 internal vec<T> vec_full(usize elements, T value, Device device=DEVICE_CPU);
 
-// TODO(lucas): Templatize these and restrict Gauss distribution to floating-point vectors
-// TODO(lucas): Make GPU RNG
 vec<f32> vec_rand_uniform(f32 min, f32 max, usize n);
 vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, usize n);
 vec<f32> vec_rand_gauss_standard(usize n);
@@ -40,18 +38,24 @@ internal void vec_set_range(vec<T> v, vec<T> data, usize offset);
 template <typename T>
 internal void vec_print(vec<T> v);
 
-// TODO(lucas): Replace with operator overloading
 template <typename T>
 internal void vec_add(vec<T> a, vec<T> b);
 
-// TODO(lucas): Replace with operator overloading
 template <typename T>
 internal void vec_scale(vec<T> v, T c);
+
+// Take the reciprocal of each element of the vector.
+template <typename T>
+internal vec<T> vec_reciprocal(vec<T> v);
 
 // Element-wise (Hadamard product)
 // Vectors must be equal size
 template <typename T>
 internal void vec_had(vec<T> a, vec<T> b);
+
+// Sum all elements of a vector.
+template <typename T>
+internal T vec_sum(vec<T> v);
 
 template <typename T>
 internal inline T vec_at(vec<T> v, usize index)

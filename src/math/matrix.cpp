@@ -146,6 +146,32 @@ internal void mat_set_col(mat<T> m, vec<T> data, usize col)
 }
 
 template <typename T>
+vec<T> mat_get_row(mat<T> m, usize row)
+{
+    ASSERT(row < m.rows);
+
+    vec<T> result = {};
+    result.elements = m.rows;
+    result.device = m.device;
+    result.data = m.data + row*m.cols;
+
+    return result;
+}
+
+template <typename T>
+vec<T> mat_get_col(mat<T> m, usize col)
+{
+    ASSERT(col < m.cols);
+
+    vec<T> result = {};
+    result.elements = m.rows;
+    result.device = m.device;
+    result.data = m.data + col;
+
+    return result;
+}
+
+template <typename T>
 internal void mat_set_row_range(mat<T> m, vec<T> data, usize row, usize row_offset)
 {
     // There must be enough columns after the offset to accommodate the vector.
@@ -241,7 +267,7 @@ internal void mat_print(mat<T> m)
         if(row < m.rows - 1)
             printf(",\n");
     }
-    printf("]");
+    printf("]\n");
 
     if (was_on_gpu)
     mat_to(&m, DEVICE_GPU);
@@ -399,7 +425,7 @@ internal mat<T> mat_stretch_add(mat<T> a, mat<T> b)
 }
 
 template <typename T>
-internal void mat_scale(mat<T> m, T value)
+internal void mat_scale(mat<T> m, T scale)
 {
     switch(m.device)
     {
@@ -410,13 +436,57 @@ internal void mat_scale(mat<T> m, T value)
                 for (usize col = 0; col < m.cols; ++col)
                 {
                     T element = mat_at(m, row, col);
-                    mat_set_val(m, row, col, element*value);
+                    mat_set_val(m, row, col, element*scale);
                 }
             }
         } break;
 
-        case DEVICE_GPU: mat_scale_gpu(m, value);
+        case DEVICE_GPU: mat_scale_gpu(m, scale);
 
+        default: break;
+    }
+}
+
+template <typename T>
+internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
+{
+    switch (axis)
+    {
+        case Axis_Rows:
+        {
+            for (usize row = 0; row < m.rows; ++row)
+            {
+                for (usize col = 0; col < m.cols; ++col)
+                {
+                    T element = mat_at(m, row, col);
+                    mat_set_val(m, row, col, element*scale.data[row]);
+                }
+            }
+        } break;
+
+        case Axis_Cols:
+        {
+            for (usize row = 0; row < m.rows; ++row)
+            {
+                for (usize col = 0; col < m.cols; ++col)
+                {
+                    T element = mat_at(m, row, col);
+                    mat_set_val(m, row, col, element*scale.data[col]);
+                }
+            }
+        } break;
+
+        default: break;
+    }
+}
+
+template <typename T>
+internal void mat_scale(mat<T> m, vec<T> scale, Axis axis)
+{
+    switch (m.device)
+    {
+        case DEVICE_CPU: mat_scale_cpu(m, scale, axis); break;
+        case DEVICE_GPU: mat_scale_gpu(m, scale, axis); break;
         default: break;
     }
 }
@@ -481,4 +551,50 @@ internal void mat_had(mat<T> a, mat<T> b)
 
         default: break;
     }
+}
+
+template <typename T>
+internal vec<T> mat_sum_cpu(mat<T> m, Axis axis)
+{
+    vec<T> result = {};
+    switch (axis)
+    {
+        case Axis_Rows:
+        {
+            result = vec_zeros<T>(m.rows);
+            for (usize col = 0; col < m.cols; ++col)
+            {
+                for (usize row = 0; row < m.rows; ++row)
+                    result.data[row] += mat_at(m, row, col);
+            }
+        } break;
+
+        case Axis_Cols:
+        {
+            result = vec_zeros<T>(m.cols);
+            for (usize col = 0; col < m.cols; ++col)
+            {
+                for (usize row = 0; row < m.rows; ++row)
+                    result.data[col] += mat_at(m, row, col);
+            }
+        } break;
+
+        default: break;
+    }
+
+    return result;
+}
+
+template <typename T>
+internal vec<T> mat_sum(mat<T> m, Axis axis)
+{
+    vec<T> result = {};
+    switch (m.device)
+    {
+        case DEVICE_CPU: result = mat_sum_cpu(m, axis); break;
+        case DEVICE_GPU: result = mat_sum_gpu(m, axis); break;
+        default: break;
+    }
+
+    return result;
 }
