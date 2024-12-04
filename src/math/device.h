@@ -2,6 +2,6 @@
 
 typedef enum Device
 {
-	DEVICE_CPU = 0,
-	DEVICE_GPU
+	Device_CPU = 0,
+	Device_GPU
 } Device;

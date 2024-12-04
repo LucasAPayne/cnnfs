@@ -17,6 +17,6 @@ struct DenseLayer
 };
 
 DenseLayer dense_layer_init(usize inputs, usize neurons, ActivationType activation=Activation_Linear,
-                            Device device=DEVICE_CPU);
+                            Device device=Device_CPU);
 
 void dense_layer_forward(DenseLayer* layer, mat<f32> input);

@@ -178,27 +178,27 @@ void mat_to(mat<T>* m, Device device)
     result.cols = m->cols;
     switch(m->device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
-            if (device == DEVICE_GPU)
+            if (device == Device_GPU)
             {
                 usize mem = m->rows*m->cols*sizeof(T);
                 cuda_call(cudaMalloc(&result.data, mem));
                 cuda_call(cudaMemcpy(result.data, m->data, mem, cudaMemcpyHostToDevice));
-                result.device = DEVICE_GPU;
+                result.device = Device_GPU;
                 free(m->data);
                 *m = result;
             }
         } break;
 
-        case DEVICE_GPU:
+        case Device_GPU:
         {
-            if (device == DEVICE_CPU)
+            if (device == Device_CPU)
             {
                 usize mem = m->rows*m->cols*sizeof(T);
                 result.data = (T*)malloc(mem);
                 cuda_call(cudaMemcpy(result.data, m->data, mem, cudaMemcpyDeviceToHost));
-                result.device = DEVICE_CPU;
+                result.device = Device_CPU;
                 cuda_call(cudaFree(m->data));
                 *m = result;
             }
@@ -220,7 +220,7 @@ mat<T> mat_zeros_gpu(usize rows, usize cols)
     mat<T> result = {};
     result.rows = rows;
     result.cols = cols;
-    result.device = DEVICE_GPU;
+    result.device = Device_GPU;
 
     usize mem = rows*cols*sizeof(T);
     cuda_call(cudaMalloc(&result.data, mem));

@@ -107,27 +107,27 @@ void vec_to(vec<T>* v, Device device)
     result.elements = v->elements;
     switch (v->device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
-            if (device == DEVICE_GPU)
+            if (device == Device_GPU)
             {
                 usize mem = v->elements*sizeof(T);
                 cuda_call(cudaMalloc(&result.data, mem));
                 cuda_call(cudaMemcpy(result.data, v->data, mem, cudaMemcpyHostToDevice));
-                result.device = DEVICE_GPU;
+                result.device = Device_GPU;
                 free(v->data);
                 *v = result;
             }
         } break;
 
-        case DEVICE_GPU:
+        case Device_GPU:
         {
-            if (device == DEVICE_CPU)
+            if (device == Device_CPU)
             {
                 usize mem = v->elements*sizeof(T);
                 result.data = (T*)malloc(mem);
                 cuda_call(cudaMemcpy(result.data, v->data, mem, cudaMemcpyDeviceToHost));
-                result.device = DEVICE_CPU;
+                result.device = Device_CPU;
                 cuda_call(cudaFree(v->data));
                 *v = result;
             }
@@ -142,7 +142,7 @@ vec<T> vec_zeros_gpu(usize elements)
 {
     vec<T> result = {};
     result.elements = elements;
-    result.device = DEVICE_GPU;
+    result.device = Device_GPU;
 
     usize mem = elements*sizeof(T);
     cuda_call(cudaMalloc(&result.data, mem));

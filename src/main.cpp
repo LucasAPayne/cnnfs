@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Change capitalization to Device_CPU, Device_GPU for consistency.
 // TODO(lucas): Matrix and vector functions should still operate in-place, but also return the value for more expressiveness.
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
 // TODO(lucas): Look into CUDA warnings
@@ -26,7 +25,7 @@ int main(void)
 {
     rand_seed(123);
 
-    Device device = DEVICE_GPU;
+    Device device = Device_GPU;
 
     mat<f32> data;
     vec<u32> labels;
@@ -40,12 +39,12 @@ int main(void)
     dense_layer_forward(&dense1, data);
     dense_layer_forward(&dense2, dense1.output);
 
-    mat_to(&dense2.output, DEVICE_CPU);
+    mat_to(&dense2.output, Device_CPU);
     mat_print(dense2.output);
 
     // TODO(lucas): Add a function to find the max value(s) of a matrix as a whole or along an axis,
     // and the index of the max value.
-    vec<u32> pred = vec_zeros<u32>(labels.elements, DEVICE_CPU);
+    vec<u32> pred = vec_zeros<u32>(labels.elements, Device_CPU);
     for (usize i = 0; i < pred.elements; ++i)
     {
         vec<f32> confidence = mat_get_row(dense2.output, i);
@@ -60,7 +59,7 @@ int main(void)
         pred.data[i] = idx;
     }
 
-    vec_to(&labels, DEVICE_CPU);
+    vec_to(&labels, Device_CPU);
     f32 acc = accuracy_score(labels, pred);
 
     printf("\nAccuracy: %.2f%%\n", acc*100.0f);

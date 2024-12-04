@@ -18,14 +18,14 @@ struct vec
 };
 
 template <typename T>
-internal vec<T> vec_init(usize elements, T* data, Device device=DEVICE_CPU);
+internal vec<T> vec_init(usize elements, T* data, Device device=Device_CPU);
 
 template<typename T>
-vec<T> vec_zeros(usize elements, Device device=DEVICE_CPU);
+vec<T> vec_zeros(usize elements, Device device=Device_CPU);
 
 // Create vector of a given size filled with fill_value
 template <typename T>
-internal vec<T> vec_full(usize elements, T value, Device device=DEVICE_CPU);
+internal vec<T> vec_full(usize elements, T value, Device device=Device_CPU);
 
 vec<f32> vec_rand_uniform(f32 min, f32 max, usize n);
 vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, usize n);

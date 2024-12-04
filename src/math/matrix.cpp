@@ -23,14 +23,14 @@ internal mat<T> mat_zeros(usize rows, usize cols, Device device)
 
     switch(device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             result.rows = rows;
             result.cols = cols;
             result.data = (T*)calloc(rows*cols, sizeof(T));
         } break;
 
-        case DEVICE_GPU: result = mat_zeros_gpu<T>(rows, cols); break;
+        case Device_GPU: result = mat_zeros_gpu<T>(rows, cols); break;
 
         default: break;
     }
@@ -45,7 +45,7 @@ internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device)
     mat<T> result = {};
     switch (device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             result = mat_zeros<T>(rows, cols);
             for (usize row = 0; row < result.rows; ++row)
@@ -55,7 +55,7 @@ internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device)
             }
         } break;
 
-        case DEVICE_GPU: result = mat_full_gpu<T>(rows, cols, fill_value);
+        case Device_GPU: result = mat_full_gpu<T>(rows, cols, fill_value);
 
         default: break;
     }
@@ -112,13 +112,13 @@ internal void mat_set_row(mat<T> m, vec<T> data, usize row)
 
     switch (m.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize col = 0; col < m.cols; ++col)
                 mat_set_val(m, row, col, data.data[col]);
         } break;
 
-        case DEVICE_GPU: mat_set_row_gpu(m, data, row); break;
+        case Device_GPU: mat_set_row_gpu(m, data, row); break;
 
         default: break;
     }
@@ -133,13 +133,13 @@ internal void mat_set_col(mat<T> m, vec<T> data, usize col)
 
     switch (m.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize row = 0; row < m.rows; ++col)
                 mat_set_val(m, row, col, data.data[row]);
         } break;
 
-        case DEVICE_GPU: mat_set_col_gpu(m, data, col); break;
+        case Device_GPU: mat_set_col_gpu(m, data, col); break;
 
         default: break;
     }
@@ -179,13 +179,13 @@ internal void mat_set_row_range(mat<T> m, vec<T> data, usize row, usize row_offs
 
     switch (m.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < data.elements; ++i)
                 mat_set_val(m, row, row_offset + i, data.data[i]);
         } break;
 
-        case DEVICE_GPU: mat_set_row_range_gpu(m, data, row, row_offset); break;
+        case Device_GPU: mat_set_row_range_gpu(m, data, row, row_offset); break;
 
         default: break;
     }
@@ -198,13 +198,13 @@ internal void mat_set_col_range(mat<T> m, vec<T> data, usize col, usize col_offs
 
     switch (m.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < data.elements; ++i)
                 mat_set_val(m, col_offset + i, col, data.data[i]);
         } break;
 
-        case DEVICE_GPU: mat_set_col_range_gpu(m, data, col, col_offset); break;
+        case Device_GPU: mat_set_col_range_gpu(m, data, col, col_offset); break;
 
         default: break;
     }
@@ -214,9 +214,9 @@ internal void mat_set_col_range(mat<T> m, vec<T> data, usize col, usize col_offs
 template <typename T>
 internal void mat_print(mat<T> m)
 {
-    b32 was_on_gpu = m.device == DEVICE_GPU;
+    b32 was_on_gpu = m.device == Device_GPU;
     if (was_on_gpu)
-        mat_to(&m, DEVICE_CPU);
+        mat_to(&m, Device_CPU);
 
     // Compute max width needed for printing
     int width = 0;
@@ -270,7 +270,7 @@ internal void mat_print(mat<T> m)
     printf("]\n");
 
     if (was_on_gpu)
-    mat_to(&m, DEVICE_GPU);
+    mat_to(&m, Device_GPU);
 }
 
 /* TODO(lucas): Overload this function to take a matrix or vector,
@@ -286,7 +286,7 @@ internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
     mat<T> result = {};
     switch (orig.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             result = mat_zeros<T>(target.rows, target.cols);
             for (usize i = 0; i < target.cols; ++i)
@@ -299,7 +299,7 @@ internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
             }
         } break;
 
-        case DEVICE_GPU: result = mat_stretch_cols_gpu(orig, target);
+        case Device_GPU: result = mat_stretch_cols_gpu(orig, target);
 
         default: break;
     }
@@ -320,7 +320,7 @@ internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
     mat<T> result = {};
     switch (orig.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             result = mat_zeros<T>(target.rows, target.cols);
             for (usize i = 0; i < target.rows; ++i)
@@ -333,7 +333,7 @@ internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
             }
         } break;
 
-        case DEVICE_GPU: result = mat_stretch_rows_gpu(orig, target);
+        case Device_GPU: result = mat_stretch_rows_gpu(orig, target);
 
         default: break;
     }
@@ -350,7 +350,7 @@ internal void mat_add(mat<T> a, mat<T> b)
 
     switch (a.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < a.rows; ++i)
             {
@@ -362,7 +362,7 @@ internal void mat_add(mat<T> a, mat<T> b)
             }
         } break;
 
-        case DEVICE_GPU: mat_add_gpu(a, b);
+        case Device_GPU: mat_add_gpu(a, b);
 
         default: break;
     }
@@ -373,8 +373,8 @@ internal void mat_free_data(mat<T> a)
 {
     switch (a.device)
     {
-        case DEVICE_CPU: free(a.data); break;
-        case DEVICE_GPU: mat_free_data_gpu(a);
+        case Device_CPU: free(a.data); break;
+        case Device_GPU: mat_free_data_gpu(a);
         default: break;
     }
 }
@@ -429,7 +429,7 @@ internal void mat_scale(mat<T> m, T scale)
 {
     switch(m.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize row = 0; row < m.rows; ++row)
             {
@@ -441,7 +441,7 @@ internal void mat_scale(mat<T> m, T scale)
             }
         } break;
 
-        case DEVICE_GPU: mat_scale_gpu(m, scale);
+        case Device_GPU: mat_scale_gpu(m, scale);
 
         default: break;
     }
@@ -485,8 +485,8 @@ internal void mat_scale(mat<T> m, vec<T> scale, Axis axis)
 {
     switch (m.device)
     {
-        case DEVICE_CPU: mat_scale_cpu(m, scale, axis); break;
-        case DEVICE_GPU: mat_scale_gpu(m, scale, axis); break;
+        case Device_CPU: mat_scale_cpu(m, scale, axis); break;
+        case Device_GPU: mat_scale_gpu(m, scale, axis); break;
         default: break;
     }
 }
@@ -501,7 +501,7 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
     mat<T> result = {};
     switch(a.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             // Shape of output matrix is determined by the number of rows in A and the number of columns in B
             result = mat_zeros<T>(a.rows, b.cols);
@@ -518,7 +518,7 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
             }
         } break;
 
-        case DEVICE_GPU: result = mat_mul_gpu(a, b); break;
+        case Device_GPU: result = mat_mul_gpu(a, b); break;
 
         default: break;
     }
@@ -535,7 +535,7 @@ internal void mat_had(mat<T> a, mat<T> b)
 
     switch (a.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize row = 0; row < a.rows; ++row)
             {
@@ -547,7 +547,7 @@ internal void mat_had(mat<T> a, mat<T> b)
             }
         } break;
 
-        case DEVICE_GPU: mat_had_gpu(a, b); break;
+        case Device_GPU: mat_had_gpu(a, b); break;
 
         default: break;
     }
@@ -591,8 +591,8 @@ internal vec<T> mat_sum(mat<T> m, Axis axis)
     vec<T> result = {};
     switch (m.device)
     {
-        case DEVICE_CPU: result = mat_sum_cpu(m, axis); break;
-        case DEVICE_GPU: result = mat_sum_gpu(m, axis); break;
+        case Device_CPU: result = mat_sum_cpu(m, axis); break;
+        case Device_GPU: result = mat_sum_gpu(m, axis); break;
         default: break;
     }
 

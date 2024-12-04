@@ -25,13 +25,13 @@ struct mat
 };
 
 template <typename T>
-internal mat<T> mat_init(usize rows, usize cols, T* data, Device device=DEVICE_CPU);
+internal mat<T> mat_init(usize rows, usize cols, T* data, Device device=Device_CPU);
 
 template <typename T>
-internal mat<T> mat_zeros(usize rows, usize cols, Device device=DEVICE_CPU);
+internal mat<T> mat_zeros(usize rows, usize cols, Device device=Device_CPU);
 
 template <typename T>
-internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device=DEVICE_CPU);
+internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device=Device_CPU);
 
 mat<f32> mat_rand_uniform(f32 min, f32 max, usize rows, usize cols);
 mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, usize rows, usize cols);

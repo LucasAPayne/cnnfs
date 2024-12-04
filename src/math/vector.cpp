@@ -21,13 +21,13 @@ vec<T> vec_zeros(usize elements, Device device)
     vec<T> result = {};
     switch (device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             result.elements = elements;
             result.data = (T*)calloc(elements, sizeof(T));
         } break;
 
-        case DEVICE_GPU: result = vec_zeros_gpu<T>(elements); break;
+        case Device_GPU: result = vec_zeros_gpu<T>(elements); break;
 
         default: break;
     }
@@ -43,14 +43,14 @@ internal vec<T> vec_full(usize elements, T fill_value, Device device)
     
     switch (device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             result = vec_zeros<T>(elements);
             for (usize i = 0; i < elements; ++i)
                 result.data[i] = fill_value;
         } break;
 
-        case DEVICE_GPU: result = vec_full_gpu(elements, fill_value); break;
+        case Device_GPU: result = vec_full_gpu(elements, fill_value); break;
 
         default: break;
     }
@@ -97,13 +97,13 @@ internal void vec_set_range(vec<T> v, vec<T> data, usize offset)
 
     switch(v.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < data.elements; ++i)
                 v.data[offset + i] = data.data[i];
         } break;
 
-        case DEVICE_GPU: vec_set_range_gpu(v, data, offset); break;
+        case Device_GPU: vec_set_range_gpu(v, data, offset); break;
 
         default: break;
     }
@@ -112,9 +112,9 @@ internal void vec_set_range(vec<T> v, vec<T> data, usize offset)
 template <typename T>
 internal void vec_print(vec<T> v)
 {
-    b32 was_on_gpu = v.device == DEVICE_GPU;
+    b32 was_on_gpu = v.device == Device_GPU;
     if (was_on_gpu)
-        vec_to(&v, DEVICE_CPU);
+        vec_to(&v, Device_CPU);
 
     printf("[");
     for (usize i = 0; i < v.elements; ++i)
@@ -145,7 +145,7 @@ internal void vec_print(vec<T> v)
     printf("]\n");
 
     if (was_on_gpu)
-        vec_to(&v, DEVICE_GPU);
+        vec_to(&v, Device_GPU);
 }
 
 template <typename T>
@@ -156,13 +156,13 @@ internal void vec_add(vec<T> a, vec<T> b)
 
     switch (a.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < a.elements; ++i)
                 a.data[i] += b.data[i];
         } break;
 
-        case DEVICE_GPU: vec_add_gpu(a, b); break;
+        case Device_GPU: vec_add_gpu(a, b); break;
 
         default: break;
     }
@@ -173,13 +173,13 @@ internal void vec_scale(vec<T> v, T c)
 {
     switch (v.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < v.elements; ++i)
                 v.data[i] *= c;
         } break;
 
-        case DEVICE_GPU: vec_scale_gpu(v, c); break;
+        case Device_GPU: vec_scale_gpu(v, c); break;
 
         default: break;
     }
@@ -190,13 +190,13 @@ internal vec<T> vec_reciprocal(vec<T> v)
 {
     switch (v.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < v.elements; ++i)
                 v.data[i] = (T)1 / v.data[i];
         } break;
 
-        case DEVICE_GPU: vec_reciprocal_gpu(v); break;
+        case Device_GPU: vec_reciprocal_gpu(v); break;
 
         default: break;
     }
@@ -212,13 +212,13 @@ internal void vec_had(vec<T> a, vec<T> b)
 
     switch (a.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < a.elements; ++i)
                 a.data[i] *= b.data[i];
         } break;
 
-        case DEVICE_GPU: vec_had_gpu(a, b); break;
+        case Device_GPU: vec_had_gpu(a, b); break;
 
         default: break;
     }
@@ -230,13 +230,13 @@ internal T vec_sum(vec<T> v)
     T result = 0;
     switch (v.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize i = 0; i < v.elements; ++i)
                 result += v.data[i];
         } break;
 
-        case DEVICE_GPU: vec_sum_gpu(v); break;
+        case Device_GPU: vec_sum_gpu(v); break;
 
         default: break;
     }

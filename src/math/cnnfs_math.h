@@ -11,8 +11,8 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
 // Generate a sequence of n evenly-spaced numbers in the range [x1, x2]
-vec<f32> linspace(f32 x1, f32 x2, usize n, Device device=DEVICE_CPU);
-vec<f64> linspace(f64 x1, f64 x2, usize n, Device device=DEVICE_CPU);
+vec<f32> linspace(f32 x1, f32 x2, usize n, Device device=Device_CPU);
+vec<f64> linspace(f64 x1, f64 x2, usize n, Device device=Device_CPU);
 
 internal inline f32 sin_f32(f32 x)
 {

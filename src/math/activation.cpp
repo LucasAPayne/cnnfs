@@ -6,7 +6,7 @@ internal void relu_forward(mat<f32> inputs)
 {
     switch (inputs.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize row = 0; row < inputs.rows; ++row)
             {
@@ -15,7 +15,7 @@ internal void relu_forward(mat<f32> inputs)
             }
         } break;
 
-        case DEVICE_GPU: relu_forward_gpu(inputs);
+        case Device_GPU: relu_forward_gpu(inputs);
 
         default: break;
     }
@@ -25,7 +25,7 @@ internal void relu_forward(mat<f64> inputs)
 {
     switch (inputs.device)
     {
-        case DEVICE_CPU:
+        case Device_CPU:
         {
             for (usize row = 0; row < inputs.rows; ++row)
             {
@@ -34,7 +34,7 @@ internal void relu_forward(mat<f64> inputs)
             }
         } break;
 
-        case DEVICE_GPU: relu_forward_gpu(inputs);
+        case Device_GPU: relu_forward_gpu(inputs);
 
         default: break;
     }

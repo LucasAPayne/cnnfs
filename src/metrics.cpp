@@ -5,12 +5,12 @@ f32 accuracy_score(vec<u32> y_true, vec<u32> y_pred)
 {
     ASSERT(y_true.elements == y_pred.elements);
 
-    b32 y_true_was_on_gpu = (y_true.device == DEVICE_GPU);
-    b32 y_pred_was_on_gpu = (y_pred.device == DEVICE_GPU);
+    b32 y_true_was_on_gpu = (y_true.device == Device_GPU);
+    b32 y_pred_was_on_gpu = (y_pred.device == Device_GPU);
     if (y_true_was_on_gpu)
-        vec_to(&y_true, DEVICE_CPU);
+        vec_to(&y_true, Device_CPU);
     if (y_pred_was_on_gpu)
-        vec_to(&y_true, DEVICE_CPU);
+        vec_to(&y_true, Device_CPU);
 
     u32 sum = 0;
     for (usize i = 0; i < y_true.elements; ++i)
