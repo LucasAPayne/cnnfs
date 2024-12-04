@@ -203,72 +203,21 @@ void vec_had_gpu(vec<T> a, vec<T> b)
     sync_kernel();
 }
 
-// TODO(lucas): Temporary, will convert to template after testing other types.
-f32 vec_sum_gpu(vec<f32> v)
+template <typename T>
+T vec_sum_gpu(vec<T> v)
 {
-    f32* out;
-    usize mem = v.elements*sizeof(f32);
+    T* out;
+    usize mem = v.elements*sizeof(T);
     cuda_call(cudaMalloc(&out, mem));
-    
+
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_sum_kernel<<<layout.grid_dim, layout.block_dim>>>(v, out);
     sync_kernel();
-
-    f32 result;
-    cuda_call(cudaMemcpy(&result, out, sizeof(f32), cudaMemcpyDeviceToHost));
+    
+    T result;
+    cuda_call(cudaMemcpy(&result, out, sizeof(T), cudaMemcpyDeviceToHost));
     cuda_call(cudaFree(out));
-    
-    return result;
-}
 
-f64 vec_sum_gpu(vec<f64> v)
-{
-    f64* out;
-    usize mem = v.elements*sizeof(f64);
-    cuda_call(cudaMalloc(&out, mem));
-    
-    ThreadLayout layout = calc_thread_dim(v.elements);
-    vec_sum_kernel<<<layout.grid_dim, layout.block_dim>>>(v, out);
-    sync_kernel();
-
-    f64 result;
-    cuda_call(cudaMemcpy(&result, out, sizeof(f64), cudaMemcpyDeviceToHost));
-    cuda_call(cudaFree(out));
-    
-    return result;
-}
-
-u32 vec_sum_gpu(vec<u32> v)
-{
-    u32* out;
-    usize mem = v.elements*sizeof(u32);
-    cuda_call(cudaMalloc(&out, mem));
-    
-    ThreadLayout layout = calc_thread_dim(v.elements);
-    vec_sum_kernel<<<layout.grid_dim, layout.block_dim>>>(v, out);
-    sync_kernel();
-
-    u32 result;
-    cuda_call(cudaMemcpy(&result, out, sizeof(u32), cudaMemcpyDeviceToHost));
-    cuda_call(cudaFree(out));
-    
-    return result;
-}
-
-i32 vec_sum_gpu(vec<i32> v)
-{
-    i32* out;
-    usize mem = v.elements*sizeof(i32);
-    cuda_call(cudaMalloc(&out, mem));
-    
-    ThreadLayout layout = calc_thread_dim(v.elements);
-    vec_sum_kernel<<<layout.grid_dim, layout.block_dim>>>(v, out);
-    sync_kernel();
-
-    i32 result;
-    cuda_call(cudaMemcpy(&result, out, sizeof(i32), cudaMemcpyDeviceToHost));
-    cuda_call(cudaFree(out));
-    
     return result;
 }
 
@@ -280,6 +229,7 @@ i32 vec_sum_gpu(vec<i32> v)
 #define VEC_SCALE_GPU(T) INST_TEMPLATE(vec_scale_gpu, void, T, (vec<T> v, T c))
 #define VEC_RECIPROCAL_GPU(T) INST_TEMPLATE(vec_reciprocal_gpu, vec<T>, T, (vec<T> v))
 #define VEC_HAD_GPU(T) INST_TEMPLATE(vec_had_gpu, void, T, (vec<T> a, vec<T> b))
+#define VEC_SUM_GPU(T) INST_TEMPLATE(vec_sum_gpu, T, T, (vec<T> v))
 
 INST_ALL_TYPES(VEC_TO)
 INST_ALL_TYPES(VEC_ZEROS_GPU)
@@ -289,6 +239,7 @@ INST_ALL_TYPES(VEC_ADD_GPU)
 INST_ALL_TYPES(VEC_SCALE_GPU)
 INST_ALL_TYPES(VEC_RECIPROCAL_GPU)
 INST_ALL_TYPES(VEC_HAD_GPU)
+INST_ALL_TYPES(VEC_SUM_GPU)
 
 #undef VEC_TO
 #undef VEC_ZEROS_GPU
@@ -298,3 +249,4 @@ INST_ALL_TYPES(VEC_HAD_GPU)
 #undef VEC_SCALE_GPU
 #undef VEC_RECIPROCAL_GPU
 #undef VEC_HAD_GPU
+#undef VEC_SUM_GPU

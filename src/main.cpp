@@ -1,8 +1,7 @@
-#include <stdio.h>
-
 #include "cnnfs.h"
 
-// TODO(lucas): Get rid of atomic_add functions and fix matrix and vector sums.
+#include <stdio.h>
+
 // TODO(lucas): Change capitalization to Device_CPU, Device_GPU for consistency.
 // TODO(lucas): Matrix and vector functions should still operate in-place, but also return the value for more expressiveness.
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
