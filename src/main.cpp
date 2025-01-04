@@ -17,8 +17,10 @@
 // TODO(lucas): Log invalid device errors and other assertions.
 // TODO(lucas): vec/mat copy.
 // TODO(lucas): Switch to growable arenas and get rid of individual vec/matrix allocations.
-// TODO(lucas): Use scratch space for each pass over the neural network.
+// TODO(lucas): Use scratch space for each pass over the neural network,
+// or pre-allocate the memory for each output and have an option for multiplication to take in allocated memory.
 // TODO(lucas): Make mat_sretch_* in-place?
+// or replace stretching with adding a vector along each axis.
 // TODO(lucas): Use shared memory in CUDA code where appropraite (e.g., matrix ops).
 
 int main(void)
@@ -31,23 +33,26 @@ int main(void)
     vec<u32> labels;
     create_spiral_data(100, 3, &data, &labels, device);
 
-    // NOTE(lucas): 2 input features (x and y coordinates) and 3 output values
+    // 2 input features (x and y coordinates) and 3 output values
     DenseLayer dense1 = dense_layer_init(2, 3, Activation_ReLU, device);
-    // NOTE(lucas): Perform classification using softmax activation to generate a normalized confidence distribution.
-    DenseLayer dense2 = dense_layer_init(3, 3, Activation_Softmax, device);
+    // Another dense layer
+    DenseLayer dense2 = dense_layer_init(3, 3, Activation_ReLU, device);
+    // Perform classification using softmax activation to generate a normalized confidence distribution.
+    DenseLayer out = dense_layer_init(3, 3, Activation_Softmax, device);
 
     dense_layer_forward(&dense1, data);
     dense_layer_forward(&dense2, dense1.output);
+    dense_layer_forward(&out, dense2.output);
 
-    mat_to(&dense2.output, Device_CPU);
-    mat_print(dense2.output);
+    mat_to(&out.output, Device_CPU);
+    mat_print(out.output);
 
     // TODO(lucas): Add a function to find the max value(s) of a matrix as a whole or along an axis,
     // and the index of the max value.
     vec<u32> pred = vec_zeros<u32>(labels.elements, Device_CPU);
     for (usize i = 0; i < pred.elements; ++i)
     {
-        vec<f32> confidence = mat_get_row(dense2.output, i);
+        vec<f32> confidence = mat_get_row(out.output, i);
         f32 max_confidence = -1.0f;
         u32 idx = 0;
         for (u32 j = 0; j < confidence.elements; ++j)

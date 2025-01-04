@@ -37,10 +37,6 @@ mat<f32> mat_rand_uniform(f32 min, f32 max, usize rows, usize cols);
 mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, usize rows, usize cols);
 mat<f32> mat_rand_gauss_standard(usize rows, usize cols);
 
-/* TODO(lucas): Operator overloads for these sets?
- * += and *= should not allcate additional memory, but + and * should,
- * unless maybe it can be detected whether it's equivalent to += or *=
- */
 // Set values of a matrix row with same-size vector
 template <typename T>
 internal void mat_set_row(mat<T> m, vec<T> data, usize row);
