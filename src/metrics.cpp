@@ -13,8 +13,8 @@ f32 accuracy_score(vec<u32> y_true, vec<u32> y_pred)
         vec_to(&y_true, Device_CPU);
 
     u32 sum = 0;
-    for (usize i = 0; i < y_true.elements; ++i)
-        sum += (u32)(y_true.data[i] == y_pred.data[i]);
+    for (size i = 0; i < y_true.elements; ++i)
+        sum += (u32)(y_true[i] == y_pred[i]);
     
     f32 acc = (f32)sum/(f32)y_true.elements;
     return acc;

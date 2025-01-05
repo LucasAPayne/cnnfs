@@ -11,7 +11,7 @@ __global__ internal void relu_forward_kernel(mat<f32> inputs)
     if (row >= inputs.rows || col >= inputs.cols)
         return;
     
-    usize idx = inputs.cols*row + col;
+    size idx = inputs.cols*row + col;
     inputs.data[idx] = max(0.0f, inputs.data[idx]);
 }
 
@@ -23,7 +23,7 @@ __global__ internal void relu_forward_kernel(mat<f64> inputs)
     if (row >= inputs.rows || col >= inputs.cols)
         return;
     
-    usize idx = inputs.cols*row + col;
+    size idx = inputs.cols*row + col;
     inputs.data[idx] = max(0.0, inputs.data[idx]);
 }
 

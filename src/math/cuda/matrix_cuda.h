@@ -11,22 +11,22 @@ template <typename T>
 void mat_free_data_gpu(mat<T> m);
 
 template <typename T>
-mat<T> mat_zeros_gpu(usize rows, usize cols);
+mat<T> mat_zeros_gpu(size rows, size cols);
 
 template <typename T>
-mat<T> mat_full_gpu(usize rows, usize cols, T fill_value);
+mat<T> mat_full_gpu(size rows, size cols, T fill_value);
 
 template <typename T>
-void mat_set_row_gpu(mat<T> m, vec<T> data, usize row);
+void mat_set_row_gpu(mat<T> m, vec<T> data, size row);
 
 template <typename T>
-void mat_set_col_gpu(mat<T> m, vec<T> data, usize col);
+void mat_set_col_gpu(mat<T> m, vec<T> data, size col);
 
 template <typename T>
-void mat_set_row_range_gpu(mat<T> m, vec<T> data, usize row, usize row_offset);
+void mat_set_row_range_gpu(mat<T> m, vec<T> data, size row, size row_offset);
 
 template <typename T>
-void mat_set_col_range_gpu(mat<T> m, vec<T> data, usize col, usize col_offset);
+void mat_set_col_range_gpu(mat<T> m, vec<T> data, size col, size col_offset);
 
 template <typename T>
 mat<T> mat_stretch_cols_gpu(mat<T> orig, mat<T> target);

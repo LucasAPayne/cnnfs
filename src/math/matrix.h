@@ -18,46 +18,46 @@ struct mat
 {
     static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
                   "Type must be integral or floating-point.");
-    usize rows;
-    usize cols;
+    size rows;
+    size cols;
     T* data;
     Device device;
 };
 
 template <typename T>
-internal mat<T> mat_init(usize rows, usize cols, T* data, Device device=Device_CPU);
+internal mat<T> mat_init(size rows, size cols, T* data, Device device=Device_CPU);
 
 template <typename T>
-internal mat<T> mat_zeros(usize rows, usize cols, Device device=Device_CPU);
+internal mat<T> mat_zeros(size rows, size cols, Device device=Device_CPU);
 
 template <typename T>
-internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device=Device_CPU);
+internal mat<T> mat_full(size rows, size cols, T fill_value, Device device=Device_CPU);
 
-mat<f32> mat_rand_uniform(f32 min, f32 max, usize rows, usize cols);
-mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, usize rows, usize cols);
-mat<f32> mat_rand_gauss_standard(usize rows, usize cols);
+mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols);
+mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, size rows, size cols);
+mat<f32> mat_rand_gauss_standard(size rows, size cols);
 
 // Set values of a matrix row with same-size vector
 template <typename T>
-internal void mat_set_row(mat<T> m, vec<T> data, usize row);
+internal void mat_set_row(mat<T> m, vec<T> data, size row);
 
 // Set values of a matrix column with same-size vector
 template <typename T>
-internal void mat_set_col(mat<T> m, vec<T> data, usize col);
+internal void mat_set_col(mat<T> m, vec<T> data, size col);
 
 template<typename T>
-internal vec<T> mat_get_row(mat<T> m, usize row);
+internal vec<T> mat_get_row(mat<T> m, size row);
 
 template <typename T>
-internal vec<T> mat_get_col(mat<T> m, usize col);
+internal vec<T> mat_get_col(mat<T> m, size col);
 
 // Set a range of values within a row of a matrix starting at row_offset
 template <typename T>
-internal void mat_set_row_range(mat<T> m, vec<T> data, usize row, usize row_offset);
+internal void mat_set_row_range(mat<T> m, vec<T> data, size row, size row_offset);
 
 // Set a range of values within a column of a matrix starting at col_offset
 template <typename T>
-internal void mat_set_col_range(mat<T> m, vec<T> data, usize col, usize col_offset);
+internal void mat_set_col_range(mat<T> m, vec<T> data, size col, size col_offset);
 
 template <typename T>
 internal void mat_print(mat<T> m);
@@ -98,13 +98,13 @@ template <typename T>
 internal vec<T> mat_sum(mat<T> m, Axis axis=Axis_Rows);
 
 template <typename T>
-internal inline T mat_at(mat<T> m, usize row, usize col)
+internal inline T mat_at(mat<T> m, size row, size col)
 {
     return m.data[m.cols*row + col];
 }
 
 template <typename T>
-internal inline void mat_set_val(mat<T> m, usize row, usize col, T val)
+internal inline void mat_set_val(mat<T> m, size row, size col, T val)
 {
     m.data[m.cols*row + col] = val;
 }

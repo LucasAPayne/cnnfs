@@ -3,7 +3,7 @@
 #include "rng.cpp"
 
 template <typename T>
-internal vec<T> vec_init(usize elements, T* data, Device device)
+internal vec<T> vec_init(size elements, T* data, Device device)
 {
     vec<T> result = {};
     result.elements = elements;
@@ -16,7 +16,7 @@ internal vec<T> vec_init(usize elements, T* data, Device device)
 }
 
 template <typename T>
-vec<T> vec_zeros(usize elements, Device device)
+vec<T> vec_zeros(size elements, Device device)
 {
     vec<T> result = {};
     switch (device)
@@ -37,7 +37,7 @@ vec<T> vec_zeros(usize elements, Device device)
 }
 
 template <typename T>
-internal vec<T> vec_full(usize elements, T fill_value, Device device)
+internal vec<T> vec_full(size elements, T fill_value, Device device)
 {
     vec<T> result = {};
     
@@ -46,8 +46,8 @@ internal vec<T> vec_full(usize elements, T fill_value, Device device)
         case Device_CPU:
         {
             result = vec_zeros<T>(elements);
-            for (usize i = 0; i < elements; ++i)
-                result.data[i] = fill_value;
+            for (size i = 0; i < elements; ++i)
+                result[i] = fill_value;
         } break;
 
         case Device_GPU: result = vec_full_gpu(elements, fill_value); break;
@@ -58,38 +58,38 @@ internal vec<T> vec_full(usize elements, T fill_value, Device device)
     return result;
 }
 
-vec<f32> vec_rand_uniform(f32 min, f32 max, usize n)
+vec<f32> vec_rand_uniform(f32 min, f32 max, size n)
 {
     vec<f32> result = vec_zeros<f32>(n);
 
-    for (usize i = 0; i < n; ++i)
-        result.data[i] = rand_f32_uniform(min, max);
+    for (size i = 0; i < n; ++i)
+        result[i] = rand_f32_uniform(min, max);
 
     return result;
 }
 
-vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, usize n)
+vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, size n)
 {
     vec<f32> result = vec_zeros<f32>(n);
 
-    for (usize i = 0; i < n; ++i)
-        result.data[i] = rand_f32_gauss(mean, std_dev);
+    for (size i = 0; i < n; ++i)
+        result[i] = rand_f32_gauss(mean, std_dev);
 
     return result;
 }
 
-vec<f32> vec_rand_gauss_standard(usize n)
+vec<f32> vec_rand_gauss_standard(size n)
 {
     vec<f32> result = vec_zeros<f32>(n);
 
-    for (usize i = 0; i < n; ++i)
-        result.data[i] = rand_f32_gauss_standard();
+    for (size i = 0; i < n; ++i)
+        result[i] = rand_f32_gauss_standard();
 
     return result;
 }
 
 template <typename T>
-internal void vec_set_range(vec<T> v, vec<T> data, usize offset)
+internal void vec_set_range(vec<T> v, vec<T> data, size offset)
 {
     // Ensure there is enough room in the vector
     ASSERT(v.elements >= data.elements + offset);
@@ -99,8 +99,8 @@ internal void vec_set_range(vec<T> v, vec<T> data, usize offset)
     {
         case Device_CPU:
         {
-            for (usize i = 0; i < data.elements; ++i)
-                v.data[offset + i] = data.data[i];
+            for (size i = 0; i < data.elements; ++i)
+                v[offset + i] = data[i];
         } break;
 
         case Device_GPU: vec_set_range_gpu(v, data, offset); break;
@@ -117,55 +117,35 @@ internal void vec_print(vec<T> v)
         vec_to(&v, Device_CPU);
 
     printf("[");
-    for (usize i = 0; i < v.elements; ++i)
+    for (size i = 0; i < v.elements; ++i)
     {
         if (i != 0) printf(", ");
 
         if constexpr (std::is_same_v<T, u8>)
-            printf("%hhu", v.data[i]);
+            printf("%hhu", v[i]);
         else if constexpr (std::is_same_v<T, u16>)
-            printf("%hu", v.data[i]);
+            printf("%hu", v[i]);
         else if constexpr (std::is_same_v<T, u32>)
-            printf("%u", v.data[i]);
+            printf("%u", v[i]);
         else if constexpr (std::is_same_v<T, u64>)
-            printf("%llu", v.data[i]);
+            printf("%llu", v[i]);
         else if constexpr (std::is_same_v<T, i8>)
-            printf("%hhd", v.data[i]);
+            printf("%hhd", v[i]);
         else if constexpr (std::is_same_v<T, i16>)
-            printf("%hd", v.data[i]);
+            printf("%hd", v[i]);
         else if constexpr (std::is_same_v<T, i32>)
-            printf("%d", v.data[i]);
+            printf("%d", v[i]);
         else if constexpr (std::is_same_v<T, i64>)
-            printf("%lld", v.data[i]);
+            printf("%lld", v[i]);
         else if constexpr (std::is_same_v<T, f32>)
-            printf("%f", v.data[i]);
+            printf("%f", v[i]);
         else if constexpr (std::is_same_v<T, f64>)
-            printf("%f", v.data[i]);
+            printf("%f", v[i]);
     }
     printf("]\n");
 
     if (was_on_gpu)
         vec_to(&v, Device_GPU);
-}
-
-template <typename T>
-internal void vec_add(vec<T> a, vec<T> b)
-{
-    ASSERT(a.elements == b.elements);
-    ASSERT(a.device == b.device);
-
-    switch (a.device)
-    {
-        case Device_CPU:
-        {
-            for (usize i = 0; i < a.elements; ++i)
-                a.data[i] += b.data[i];
-        } break;
-
-        case Device_GPU: vec_add_gpu(a, b); break;
-
-        default: break;
-    }
 }
 
 template <typename T>
@@ -175,8 +155,8 @@ internal void vec_scale(vec<T> v, T c)
     {
         case Device_CPU:
         {
-            for (usize i = 0; i < v.elements; ++i)
-                v.data[i] *= c;
+            for (size i = 0; i < v.elements; ++i)
+                v[i] *= c;
         } break;
 
         case Device_GPU: vec_scale_gpu(v, c); break;
@@ -192,8 +172,8 @@ internal vec<T> vec_reciprocal(vec<T> v)
     {
         case Device_CPU:
         {
-            for (usize i = 0; i < v.elements; ++i)
-                v.data[i] = (T)1 / v.data[i];
+            for (size i = 0; i < v.elements; ++i)
+                v[i] = (T)1 / v[i];
         } break;
 
         case Device_GPU: vec_reciprocal_gpu(v); break;
@@ -214,8 +194,8 @@ internal void vec_had(vec<T> a, vec<T> b)
     {
         case Device_CPU:
         {
-            for (usize i = 0; i < a.elements; ++i)
-                a.data[i] *= b.data[i];
+            for (size i = 0; i < a.elements; ++i)
+                a[i] *= b[i];
         } break;
 
         case Device_GPU: vec_had_gpu(a, b); break;
@@ -232,8 +212,8 @@ internal T vec_sum(vec<T> v)
     {
         case Device_CPU:
         {
-            for (usize i = 0; i < v.elements; ++i)
-                result += v.data[i];
+            for (size i = 0; i < v.elements; ++i)
+                result += v[i];
         } break;
 
         case Device_GPU: vec_sum_gpu(v); break;

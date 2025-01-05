@@ -3,14 +3,14 @@
 #include "util/rng.h"
 
 // NOTE(lucas): Spiral dataset adapted from https://github.com/Sentdex/nnfs/blob/master/nnfs/datasets/spiral.py
-void create_spiral_data(usize samples, u32 classes, mat<f32>* out_data, vec<u32>* out_labels, Device device)
+void create_spiral_data(size samples, u32 classes, mat<f32>* out_data, vec<u32>* out_labels, Device device)
 {
     *out_data = mat_zeros<f32>(samples*classes, 2, device);
     *out_labels = vec_zeros<u32>(samples*classes, device);
 
     for (u32 i = 0; i < classes; ++i)
     {
-        usize offset = samples*i;
+        size offset = samples*i;
 
         // Increasing radius over the domain results in a spiral shape rather than a circle
         vec<f32> r = linspace(0.0f, 1.0f, samples, device);
@@ -22,7 +22,7 @@ void create_spiral_data(usize samples, u32 classes, mat<f32>* out_data, vec<u32>
         // Each class has a different domain of angles, which rotates the spiral of each class.
         vec<f32> t_range = linspace((f32)i*4.0f, (f32)(i+1)*4.0f, samples, device);
         // Adding random values to the angles adds noise to the output so the spiral shapes are imperfect.
-        vec_add(t_range, rand_vals);
+        t_range += rand_vals;
         vec_scale(t_range, 2.5f);
 
         vec<f32> sample_x = sin_vec(t_range);

@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+// TODO(lucas): Add operator overloading.
+// TODO(lucas): Drop mat/vec prefixes for functions and just use overloading and namespace nn?
 // TODO(lucas): Matrix and vector functions should still operate in-place, but also return the value for more expressiveness.
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
 // TODO(lucas): Look into CUDA warnings
@@ -9,8 +11,6 @@
 // besides just making multiple copies, to make for easier maintenance.
 // TODO(lucas): Some math and other functions should have an option of operating in-place or returning a copy.
 // TODO(lucas): Should the math functions just be rolled into vector.h?
-// TODO(lucas): Drop mat/vec prefixes for functions and just use overloading.
-// TODO(lucas): Add operator overloading.
 // TODO(lucas): Add RNG for GPU.
 // TODO(lucas): Add profiling.
 // TODO(lucas): Add logging.
@@ -50,18 +50,18 @@ int main(void)
     // TODO(lucas): Add a function to find the max value(s) of a matrix as a whole or along an axis,
     // and the index of the max value.
     vec<u32> pred = vec_zeros<u32>(labels.elements, Device_CPU);
-    for (usize i = 0; i < pred.elements; ++i)
+    for (size i = 0; i < pred.elements; ++i)
     {
         vec<f32> confidence = mat_get_row(out.output, i);
         f32 max_confidence = -1.0f;
         u32 idx = 0;
         for (u32 j = 0; j < confidence.elements; ++j)
         {
-            max_confidence = max(max_confidence, confidence.data[j]);
-            if (max_confidence > confidence.data[j])
+            max_confidence = max(max_confidence, confidence[j]);
+            if (max_confidence > confidence[j])
                 idx = j;
         }
-        pred.data[i] = idx;
+        pred[i] = idx;
     }
 
     vec_to(&labels, Device_CPU);

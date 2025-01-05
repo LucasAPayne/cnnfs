@@ -13,7 +13,7 @@ __global__ internal void vec_full_kernel(vec<T> v, T fill_value)
 }
 
 template <typename T>
-__global__ internal void vec_set_range_kernel(vec<T> v, vec<T> data, usize offset)
+__global__ internal void vec_set_range_kernel(vec<T> v, vec<T> data, size offset)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
 
@@ -111,7 +111,7 @@ void vec_to(vec<T>* v, Device device)
         {
             if (device == Device_GPU)
             {
-                usize mem = v->elements*sizeof(T);
+                size mem = v->elements*sizeof(T);
                 cuda_call(cudaMalloc(&result.data, mem));
                 cuda_call(cudaMemcpy(result.data, v->data, mem, cudaMemcpyHostToDevice));
                 result.device = Device_GPU;
@@ -124,7 +124,7 @@ void vec_to(vec<T>* v, Device device)
         {
             if (device == Device_CPU)
             {
-                usize mem = v->elements*sizeof(T);
+                size mem = v->elements*sizeof(T);
                 result.data = (T*)malloc(mem);
                 cuda_call(cudaMemcpy(result.data, v->data, mem, cudaMemcpyDeviceToHost));
                 result.device = Device_CPU;
@@ -138,13 +138,13 @@ void vec_to(vec<T>* v, Device device)
 }
 
 template <typename T>
-vec<T> vec_zeros_gpu(usize elements)
+vec<T> vec_zeros_gpu(size elements)
 {
     vec<T> result = {};
     result.elements = elements;
     result.device = Device_GPU;
 
-    usize mem = elements*sizeof(T);
+    size mem = elements*sizeof(T);
     cuda_call(cudaMalloc(&result.data, mem));
     cuda_call(cudaMemset(result.data, 0, mem));
 
@@ -152,7 +152,7 @@ vec<T> vec_zeros_gpu(usize elements)
 }
 
 template <typename T>
-vec<T> vec_full_gpu(usize elements, T fill_value)
+vec<T> vec_full_gpu(size elements, T fill_value)
 {
     ThreadLayout layout = calc_thread_dim(elements);
     vec<T> result = vec_zeros_gpu<T>(elements);
@@ -163,7 +163,7 @@ vec<T> vec_full_gpu(usize elements, T fill_value)
 }
 
 template <typename T>
-void vec_set_range_gpu(vec<T> v, vec<T> data, usize offset)
+void vec_set_range_gpu(vec<T> v, vec<T> data, size offset)
 {
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_set_range_kernel<<<layout.grid_dim, layout.block_dim>>>(v, data, offset);
@@ -207,7 +207,7 @@ template <typename T>
 T vec_sum_gpu(vec<T> v)
 {
     T* out;
-    usize mem = v.elements*sizeof(T);
+    size mem = v.elements*sizeof(T);
     cuda_call(cudaMalloc(&out, mem));
 
     ThreadLayout layout = calc_thread_dim(v.elements);
@@ -222,9 +222,9 @@ T vec_sum_gpu(vec<T> v)
 }
 
 #define VEC_TO(T) INST_TEMPLATE(vec_to, void, T, (vec<T>* v, Device device))
-#define VEC_ZEROS_GPU(T) INST_TEMPLATE(vec_zeros_gpu, vec<T>, T, (usize elements))
-#define VEC_FULL_GPU(T) INST_TEMPLATE(vec_full_gpu, vec<T>, T, (usize elements, T fill_value))
-#define VEC_SET_RANGE_GPU(T) INST_TEMPLATE(vec_set_range_gpu, void, T, (vec<T> v, vec<T> data, usize offset))
+#define VEC_ZEROS_GPU(T) INST_TEMPLATE(vec_zeros_gpu, vec<T>, T, (size elements))
+#define VEC_FULL_GPU(T) INST_TEMPLATE(vec_full_gpu, vec<T>, T, (size elements, T fill_value))
+#define VEC_SET_RANGE_GPU(T) INST_TEMPLATE(vec_set_range_gpu, void, T, (vec<T> v, vec<T> data, size offset))
 #define VEC_ADD_GPU(T) INST_TEMPLATE(vec_add_gpu, void, T, (vec<T> a, vec<T> b))
 #define VEC_SCALE_GPU(T) INST_TEMPLATE(vec_scale_gpu, void, T, (vec<T> v, T c))
 #define VEC_RECIPROCAL_GPU(T) INST_TEMPLATE(vec_reciprocal_gpu, vec<T>, T, (vec<T> v))

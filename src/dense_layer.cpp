@@ -1,7 +1,7 @@
 #include "dense_layer.h"
 #include "util/rng.h"
 
-DenseLayer dense_layer_init(usize inputs, usize neurons, ActivationType activation, Device device)
+DenseLayer dense_layer_init(size inputs, size neurons, ActivationType activation, Device device)
 {
     DenseLayer layer = {0};
 

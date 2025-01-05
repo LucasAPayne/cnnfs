@@ -3,7 +3,7 @@
 #include "rng.cpp"
 
 template <typename T>
-internal mat<T> mat_init(usize rows, usize cols, T* data, Device device)
+internal mat<T> mat_init(size rows, size cols, T* data, Device device)
 {
     mat<T> result = {};
     result.rows = rows;
@@ -17,7 +17,7 @@ internal mat<T> mat_init(usize rows, usize cols, T* data, Device device)
 }
 
 template <typename T>
-internal mat<T> mat_zeros(usize rows, usize cols, Device device)
+internal mat<T> mat_zeros(size rows, size cols, Device device)
 {
     mat<T> result = {};
 
@@ -40,7 +40,7 @@ internal mat<T> mat_zeros(usize rows, usize cols, Device device)
 }
 
 template <typename T>
-internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device)
+internal mat<T> mat_full(size rows, size cols, T fill_value, Device device)
 {
     mat<T> result = {};
     switch (device)
@@ -48,9 +48,9 @@ internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device)
         case Device_CPU:
         {
             result = mat_zeros<T>(rows, cols);
-            for (usize row = 0; row < result.rows; ++row)
+            for (size row = 0; row < result.rows; ++row)
             {
-                for (usize col = 0; col < result.cols; ++col)
+                for (size col = 0; col < result.cols; ++col)
                     mat_set_val(result, row, col, fill_value);
             }
         } break;
@@ -63,40 +63,40 @@ internal mat<T> mat_full(usize rows, usize cols, T fill_value, Device device)
     return result;
 }
 
-mat<f32> mat_rand_uniform(f32 min, f32 max, usize rows, usize cols)
+mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols)
 {
     // TODO(lucas): Use set row/col range?
     mat<f32> result = mat_zeros<f32>(rows, cols);
 
-    for (usize row = 0; row < rows; ++row)
+    for (size row = 0; row < rows; ++row)
     {
-        for (usize col = 0; col < cols; ++col)
+        for (size col = 0; col < cols; ++col)
            mat_set_val(result, row, col, rand_f32_uniform(min, max));
     }
     
     return result;
 }
 
-mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, usize rows, usize cols)
+mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, size rows, size cols)
 {
     mat<f32> result = mat_zeros<f32>(rows, cols);
 
-    for (usize row = 0; row < rows; ++row)
+    for (size row = 0; row < rows; ++row)
     {
-        for (usize col = 0; col < cols; ++col)
+        for (size col = 0; col < cols; ++col)
            mat_set_val(result, row, col, rand_f32_gauss(mean, std_dev));
     }
     
     return result;
 }
 
-mat<f32> mat_rand_gauss_standard(usize rows, usize cols)
+mat<f32> mat_rand_gauss_standard(size rows, size cols)
 {
     mat<f32> result = mat_zeros<f32>(rows, cols);
 
-    for (usize row = 0; row < rows; ++row)
+    for (size row = 0; row < rows; ++row)
     {
-        for (usize col = 0; col < cols; ++col)
+        for (size col = 0; col < cols; ++col)
            mat_set_val(result, row, col, rand_f32_gauss_standard());
     }
     
@@ -104,7 +104,7 @@ mat<f32> mat_rand_gauss_standard(usize rows, usize cols)
 }
 
 template <typename T>
-internal void mat_set_row(mat<T> m, vec<T> data, usize row)
+internal void mat_set_row(mat<T> m, vec<T> data, size row)
 {
     // To set a row, the vector must have the same number of elements as
     // the matrix has columns.
@@ -114,8 +114,8 @@ internal void mat_set_row(mat<T> m, vec<T> data, usize row)
     {
         case Device_CPU:
         {
-            for (usize col = 0; col < m.cols; ++col)
-                mat_set_val(m, row, col, data.data[col]);
+            for (size col = 0; col < m.cols; ++col)
+                mat_set_val(m, row, col, data[col]);
         } break;
 
         case Device_GPU: mat_set_row_gpu(m, data, row); break;
@@ -125,7 +125,7 @@ internal void mat_set_row(mat<T> m, vec<T> data, usize row)
 }
 
 template <typename T>
-internal void mat_set_col(mat<T> m, vec<T> data, usize col)
+internal void mat_set_col(mat<T> m, vec<T> data, size col)
 {
     // To set a column, the vector must have the same number of elements as
     // the matrix has rows.
@@ -135,8 +135,8 @@ internal void mat_set_col(mat<T> m, vec<T> data, usize col)
     {
         case Device_CPU:
         {
-            for (usize row = 0; row < m.rows; ++col)
-                mat_set_val(m, row, col, data.data[row]);
+            for (size row = 0; row < m.rows; ++col)
+                mat_set_val(m, row, col, data[row]);
         } break;
 
         case Device_GPU: mat_set_col_gpu(m, data, col); break;
@@ -146,7 +146,7 @@ internal void mat_set_col(mat<T> m, vec<T> data, usize col)
 }
 
 template <typename T>
-vec<T> mat_get_row(mat<T> m, usize row)
+vec<T> mat_get_row(mat<T> m, size row)
 {
     ASSERT(row < m.rows);
 
@@ -159,7 +159,7 @@ vec<T> mat_get_row(mat<T> m, usize row)
 }
 
 template <typename T>
-vec<T> mat_get_col(mat<T> m, usize col)
+vec<T> mat_get_col(mat<T> m, size col)
 {
     ASSERT(col < m.cols);
 
@@ -172,7 +172,7 @@ vec<T> mat_get_col(mat<T> m, usize col)
 }
 
 template <typename T>
-internal void mat_set_row_range(mat<T> m, vec<T> data, usize row, usize row_offset)
+internal void mat_set_row_range(mat<T> m, vec<T> data, size row, size row_offset)
 {
     // There must be enough columns after the offset to accommodate the vector.
     ASSERT(m.cols >= data.elements + row_offset);
@@ -181,8 +181,8 @@ internal void mat_set_row_range(mat<T> m, vec<T> data, usize row, usize row_offs
     {
         case Device_CPU:
         {
-            for (usize i = 0; i < data.elements; ++i)
-                mat_set_val(m, row, row_offset + i, data.data[i]);
+            for (size i = 0; i < data.elements; ++i)
+                mat_set_val(m, row, row_offset + i, data[i]);
         } break;
 
         case Device_GPU: mat_set_row_range_gpu(m, data, row, row_offset); break;
@@ -192,7 +192,7 @@ internal void mat_set_row_range(mat<T> m, vec<T> data, usize row, usize row_offs
 }
 
 template <typename T>
-internal void mat_set_col_range(mat<T> m, vec<T> data, usize col, usize col_offset)
+internal void mat_set_col_range(mat<T> m, vec<T> data, size col, size col_offset)
 {
     ASSERT(m.rows >= data.elements + col_offset);
 
@@ -200,8 +200,8 @@ internal void mat_set_col_range(mat<T> m, vec<T> data, usize col, usize col_offs
     {
         case Device_CPU:
         {
-            for (usize i = 0; i < data.elements; ++i)
-                mat_set_val(m, col_offset + i, col, data.data[i]);
+            for (size i = 0; i < data.elements; ++i)
+                mat_set_val(m, col_offset + i, col, data[i]);
         } break;
 
         case Device_GPU: mat_set_col_range_gpu(m, data, col, col_offset); break;
@@ -220,9 +220,9 @@ internal void mat_print(mat<T> m)
 
     // Compute max width needed for printing
     int width = 0;
-    for (usize row = 0; row < m.rows; ++row)
+    for (size row = 0; row < m.rows; ++row)
     {
-        for (usize col = 0; col < m.cols; ++col)
+        for (size col = 0; col < m.cols; ++col)
         {
             int w = 0;
             if constexpr      (std::is_same_v<T, u8>)  w = snprintf(0, 0, "%hhu", mat_at(m, row, col));
@@ -243,11 +243,11 @@ internal void mat_print(mat<T> m)
 
     // Print
     printf("[");
-    for (usize row = 0; row < m.rows; ++row)
+    for (size row = 0; row < m.rows; ++row)
     {
         if (row > 0) printf(" ");
         printf("[");
-        for (usize col = 0; col < m.cols; ++col)
+        for (size col = 0; col < m.cols; ++col)
         {
             if (col != 0) printf(", ");
 
@@ -289,9 +289,9 @@ internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
         case Device_CPU:
         {
             result = mat_zeros<T>(target.rows, target.cols);
-            for (usize i = 0; i < target.cols; ++i)
+            for (size i = 0; i < target.cols; ++i)
             {
-                for (usize j = 0; j < target.cols; ++j)
+                for (size j = 0; j < target.cols; ++j)
                 {
                     T val = mat_at(orig, i, 0);
                     mat_set_val(result, i, j, val);
@@ -323,9 +323,9 @@ internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
         case Device_CPU:
         {
             result = mat_zeros<T>(target.rows, target.cols);
-            for (usize i = 0; i < target.rows; ++i)
+            for (size i = 0; i < target.rows; ++i)
             {
-                for (usize j = 0; j < target.cols; ++j)
+                for (size j = 0; j < target.cols; ++j)
                 {
                     T val = mat_at(orig, 0, j);
                     mat_set_val(result, i, j, val);
@@ -352,9 +352,9 @@ internal void mat_add(mat<T> a, mat<T> b)
     {
         case Device_CPU:
         {
-            for (usize i = 0; i < a.rows; ++i)
+            for (size i = 0; i < a.rows; ++i)
             {
-                for (usize j = 0; j < a.cols; ++j)
+                for (size j = 0; j < a.cols; ++j)
                 {
                     T val = mat_at(a, i, j) + mat_at(b, i, j);
                     mat_set_val(a, i, j, val);
@@ -431,9 +431,9 @@ internal void mat_scale(mat<T> m, T scale)
     {
         case Device_CPU:
         {
-            for (usize row = 0; row < m.rows; ++row)
+            for (size row = 0; row < m.rows; ++row)
             {
-                for (usize col = 0; col < m.cols; ++col)
+                for (size col = 0; col < m.cols; ++col)
                 {
                     T element = mat_at(m, row, col);
                     mat_set_val(m, row, col, element*scale);
@@ -454,24 +454,24 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
     {
         case Axis_Rows:
         {
-            for (usize row = 0; row < m.rows; ++row)
+            for (size row = 0; row < m.rows; ++row)
             {
-                for (usize col = 0; col < m.cols; ++col)
+                for (size col = 0; col < m.cols; ++col)
                 {
                     T element = mat_at(m, row, col);
-                    mat_set_val(m, row, col, element*scale.data[row]);
+                    mat_set_val(m, row, col, element*scale[row]);
                 }
             }
         } break;
 
         case Axis_Cols:
         {
-            for (usize row = 0; row < m.rows; ++row)
+            for (size row = 0; row < m.rows; ++row)
             {
-                for (usize col = 0; col < m.cols; ++col)
+                for (size col = 0; col < m.cols; ++col)
                 {
                     T element = mat_at(m, row, col);
-                    mat_set_val(m, row, col, element*scale.data[col]);
+                    mat_set_val(m, row, col, element*scale[col]);
                 }
             }
         } break;
@@ -505,12 +505,12 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
         {
             // Shape of output matrix is determined by the number of rows in A and the number of columns in B
             result = mat_zeros<T>(a.rows, b.cols);
-            for (usize i = 0; i < result.rows; ++i)
+            for (size i = 0; i < result.rows; ++i)
             {
-                for (usize j = 0; j < result.cols; ++j)
+                for (size j = 0; j < result.cols; ++j)
                 {
                     T sum = 0;
-                    for (usize k = 0; k < a.cols; ++k)
+                    for (size k = 0; k < a.cols; ++k)
                         sum += mat_at(a, i, k) * mat_at(b, k, j);
                     
                     mat_set_val(result, i, j, sum);
@@ -537,9 +537,9 @@ internal void mat_had(mat<T> a, mat<T> b)
     {
         case Device_CPU:
         {
-            for (usize row = 0; row < a.rows; ++row)
+            for (size row = 0; row < a.rows; ++row)
             {
-                for (usize col = 0; col < a.cols; ++col)
+                for (size col = 0; col < a.cols; ++col)
                 {
                     T val = mat_at(a, row, col) * mat_at(b, row, col);
                     mat_set_val(a, row, col, val);
@@ -562,20 +562,20 @@ internal vec<T> mat_sum_cpu(mat<T> m, Axis axis)
         case Axis_Rows:
         {
             result = vec_zeros<T>(m.rows);
-            for (usize col = 0; col < m.cols; ++col)
+            for (size col = 0; col < m.cols; ++col)
             {
-                for (usize row = 0; row < m.rows; ++row)
-                    result.data[row] += mat_at(m, row, col);
+                for (size row = 0; row < m.rows; ++row)
+                    result[row] += mat_at(m, row, col);
             }
         } break;
 
         case Axis_Cols:
         {
             result = vec_zeros<T>(m.cols);
-            for (usize col = 0; col < m.cols; ++col)
+            for (size col = 0; col < m.cols; ++col)
             {
-                for (usize row = 0; row < m.rows; ++row)
-                    result.data[col] += mat_at(m, row, col);
+                for (size row = 0; row < m.rows; ++row)
+                    result[col] += mat_at(m, row, col);
             }
         } break;
 

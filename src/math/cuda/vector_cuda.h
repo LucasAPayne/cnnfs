@@ -8,13 +8,13 @@ template <typename T>
 void vec_to(vec<T>* v, Device device);
 
 template <typename T>
-vec<T> vec_zeros_gpu(usize elements);
+vec<T> vec_zeros_gpu(size elements);
 
 template <typename T>
-vec<T> vec_full_gpu(usize elements, T fill_value);
+vec<T> vec_full_gpu(size elements, T fill_value);
 
 template <typename T>
-void vec_set_range_gpu(vec<T> v, vec<T> data, usize offset);
+void vec_set_range_gpu(vec<T> v, vec<T> data, size offset);
 
 template <typename T>
 void vec_add_gpu(vec<T> a, vec<T> b);

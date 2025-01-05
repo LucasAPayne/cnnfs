@@ -90,7 +90,7 @@ __global__ internal void exp_mat_kernel(mat<f32> m)
     if (row >= m.rows || col >= m.cols)
         return;
 
-    usize i = m.cols*row + col;
+    size i = m.cols*row + col;
     m.data[i] = expf(m.data[i]);
 }
 
@@ -102,11 +102,11 @@ __global__ internal void exp_mat_kernel(mat<f64> m)
     if (row >= m.rows || col >= m.cols)
         return;
 
-    usize i = m.cols*row + col;
+    size i = m.cols*row + col;
     m.data[i] = exp(m.data[i]);
 }
 
-vec<f32> linspace_gpu(f32 x1, f32 x2, usize n)
+vec<f32> linspace_gpu(f32 x1, f32 x2, size n)
 {
     vec<f32> result = vec_zeros_gpu<f32>(n);
     f32 dx = (x2 - x1) / (n - 1.0f);
@@ -116,7 +116,7 @@ vec<f32> linspace_gpu(f32 x1, f32 x2, usize n)
     return result;
 }
 
-vec<f64> linspace_gpu(f64 x1, f64 x2, usize n)
+vec<f64> linspace_gpu(f64 x1, f64 x2, size n)
 {
     vec<f64> result = vec_zeros_gpu<f64>(n);
     f64 dx = (x2 - x1) / (n - 1.0f);

@@ -13,7 +13,7 @@ struct ThreadLayout
     dim3 grid_dim;
 };
 
-inline ThreadLayout calc_thread_dim(usize rows, usize cols, int block_size_x=16, int block_size_y=16)
+inline ThreadLayout calc_thread_dim(size rows, size cols, int block_size_x=16, int block_size_y=16)
 {
     ThreadLayout result = {};
     result.block_dim = dim3(block_size_x, block_size_y);
@@ -22,7 +22,7 @@ inline ThreadLayout calc_thread_dim(usize rows, usize cols, int block_size_x=16,
     return result;
 }
 
-inline ThreadLayout calc_thread_dim(usize elements, int block_size=256)
+inline ThreadLayout calc_thread_dim(size elements, int block_size=256)
 {
     ThreadLayout result = {};
     result.block_dim = dim3(block_size);
