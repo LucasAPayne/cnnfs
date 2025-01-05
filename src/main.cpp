@@ -2,26 +2,32 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Add operator overloading.
-// TODO(lucas): Drop mat/vec prefixes for functions and just use overloading and namespace nn?
+// TODO(lucas): Add operator overloading for in-place operations.
+// TODO(lucas): Add copy operations CPU and GPU, including operator overloading.
+// For these, copy the first argument and then do the in-place operation.
+// TODO(lucas): Allow operations b/w different types to go in either order (e.g., vector-scalar or scalar-vector)
 // TODO(lucas): Matrix and vector functions should still operate in-place, but also return the value for more expressiveness.
+// TODO(lucas): Some math and other functions should have an option of operating in-place or returning a copy.
+
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
 // TODO(lucas): Look into CUDA warnings
+
 // TODO(lucas): Look into another way of specifying that some function templates are only valid for certain types,
 // besides just making multiple copies, to make for easier maintenance.
-// TODO(lucas): Some math and other functions should have an option of operating in-place or returning a copy.
 // TODO(lucas): Should the math functions just be rolled into vector.h?
+
 // TODO(lucas): Add RNG for GPU.
+// TODO(lucas): Use shared memory in CUDA code where appropraite (e.g., matrix ops).
+
 // TODO(lucas): Add profiling.
 // TODO(lucas): Add logging.
 // TODO(lucas): Log invalid device errors and other assertions.
-// TODO(lucas): vec/mat copy.
+
 // TODO(lucas): Switch to growable arenas and get rid of individual vec/matrix allocations.
 // TODO(lucas): Use scratch space for each pass over the neural network,
 // or pre-allocate the memory for each output and have an option for multiplication to take in allocated memory.
 // TODO(lucas): Make mat_sretch_* in-place?
 // or replace stretching with adding a vector along each axis.
-// TODO(lucas): Use shared memory in CUDA code where appropraite (e.g., matrix ops).
 
 int main(void)
 {

@@ -17,13 +17,13 @@ void create_spiral_data(size samples, u32 classes, mat<f32>* out_data, vec<u32>*
 
         vec<f32> rand_vals = vec_rand_gauss_standard(samples);
         vec_to(&rand_vals, device);
-        vec_scale(rand_vals, 0.2f);
+        rand_vals *= 0.2f;
 
         // Each class has a different domain of angles, which rotates the spiral of each class.
         vec<f32> t_range = linspace((f32)i*4.0f, (f32)(i+1)*4.0f, samples, device);
         // Adding random values to the angles adds noise to the output so the spiral shapes are imperfect.
         t_range += rand_vals;
-        vec_scale(t_range, 2.5f);
+        t_range *= 2.5f;
 
         vec<f32> sample_x = sin_vec(t_range);
         vec<f32> sample_y = cos_vec(t_range);

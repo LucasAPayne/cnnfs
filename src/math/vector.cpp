@@ -149,23 +149,6 @@ internal void vec_print(vec<T> v)
 }
 
 template <typename T>
-internal void vec_scale(vec<T> v, T c)
-{
-    switch (v.device)
-    {
-        case Device_CPU:
-        {
-            for (size i = 0; i < v.elements; ++i)
-                v[i] *= c;
-        } break;
-
-        case Device_GPU: vec_scale_gpu(v, c); break;
-
-        default: break;
-    }
-}
-
-template <typename T>
 internal vec<T> vec_reciprocal(vec<T> v)
 {
     switch (v.device)

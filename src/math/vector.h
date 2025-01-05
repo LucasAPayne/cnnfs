@@ -21,27 +21,58 @@ struct vec
         ASSERT(i < elements);
         return data[i];
     }
-
-    vec& operator+=(vec<T>& other)
-    {
-        ASSERT(elements == other.elements);
-        ASSERT(device == other.device);
-
-        switch (device)
-        {
-            case Device_CPU:
-            {
-                for (size i = 0; i < elements; ++i)
-                    data[i] += other[i];
-            } break;
-
-            case Device_GPU: vec_add_gpu(*this, other); break;
-
-            default: break;
-        }
-        return *this;
-    }
 };
+
+// In-place addition
+template <typename T>
+vec<T> operator+=(vec<T> a, vec<T> b)
+{
+    ASSERT(a.elements == b.elements);
+    ASSERT(a.device == b.device);
+
+    switch (a.device)
+    {
+        case Device_CPU:
+        {
+            for (size i = 0; i < a.elements; ++i)
+                a[i] += b[i];
+        } break;
+
+        case Device_GPU: vec_add_gpu(a, b); break;
+
+        default: break;
+    }
+
+    return a;
+}
+
+// In-place vector-scalar multiplication
+template <typename T>
+vec<T> operator*=(vec<T> v, T c)
+{
+    switch (v.device)
+    {
+        case Device_CPU:
+        {
+            for (size i = 0; i < v.elements; ++i)
+                v[i] *= c;
+        } break;
+
+        case Device_GPU: vec_scale_gpu(v, c); break;
+
+        default: break;
+    }
+
+    return v;
+}
+
+// In-place vector-vector multiplication (Hadamard product)
+template <typename T>
+vec<T> operator *=(vec<T> a, vec<T> b)
+{
+    vec_had(a, b);
+    return a;
+}
 
 template <typename T>
 internal vec<T> vec_init(size elements, T* data, Device device=Device_CPU);
@@ -64,9 +95,6 @@ internal void vec_set_range(vec<T> v, vec<T> data, size offset);
 template <typename T>
 internal void vec_print(vec<T> v);
 
-template <typename T>
-internal void vec_scale(vec<T> v, T c);
-
 // Take the reciprocal of each element of the vector.
 template <typename T>
 internal vec<T> vec_reciprocal(vec<T> v);
@@ -79,10 +107,3 @@ internal void vec_had(vec<T> a, vec<T> b);
 // Sum all elements of a vector.
 template <typename T>
 internal T vec_sum(vec<T> v);
-
-template <typename T>
-internal inline T vec_at(vec<T> v, size index)
-{
-    T result = v[index];
-    return result;
-}
