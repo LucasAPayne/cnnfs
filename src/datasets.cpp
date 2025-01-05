@@ -25,10 +25,8 @@ void create_spiral_data(size samples, u32 classes, mat<f32>* out_data, vec<u32>*
         t_range += rand_vals;
         t_range *= 2.5f;
 
-        vec<f32> sample_x = sin_vec(t_range);
-        vec<f32> sample_y = cos_vec(t_range);
-        vec_had(sample_x, r);
-        vec_had(sample_y, r);
+        vec<f32> sample_x = vec_had(sin_vec(t_range), r);
+        vec<f32> sample_y = vec_had(cos_vec(t_range), r);
 
         vec<u32> labels = vec_full<u32>(samples, i, device);
         

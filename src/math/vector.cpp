@@ -168,7 +168,7 @@ internal vec<T> vec_reciprocal(vec<T> v)
 }
 
 template <typename T>
-internal void vec_had(vec<T> a, vec<T> b)
+internal vec<T> vec_had(vec<T> a, vec<T> b)
 {
     ASSERT(a.elements == b.elements);
     ASSERT(a.device == b.device);
@@ -185,6 +185,8 @@ internal void vec_had(vec<T> a, vec<T> b)
 
         default: break;
     }
+
+    return a;
 }
 
 template <typename T>

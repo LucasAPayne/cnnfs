@@ -16,7 +16,7 @@ struct vec
     T* data;
     Device device;
 
-    T& operator[](size i)
+    inline T& operator[](size i)
     {
         ASSERT(i < elements);
         return data[i];
@@ -102,7 +102,7 @@ internal vec<T> vec_reciprocal(vec<T> v);
 // Element-wise (Hadamard product)
 // Vectors must be equal size
 template <typename T>
-internal void vec_had(vec<T> a, vec<T> b);
+internal vec<T> vec_had(vec<T> a, vec<T> b);
 
 // Sum all elements of a vector.
 template <typename T>
