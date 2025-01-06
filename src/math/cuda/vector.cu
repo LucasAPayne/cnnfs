@@ -5,20 +5,25 @@ template <typename T>
 __global__ internal void vec_full_kernel(vec<T> v, T fill_value)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (i >= v.elements)
-        return;
+    if (i >= v.elements) return;
     
     v.data[i] = fill_value;
+}
+
+template <typename T>
+__global__ internal void vec_copy_kernel(vec<T> result, vec<T> v)
+{
+    int i = threadIdx.x + blockIdx.x*blockDim.x;
+    if (i >= v.elements) return;
+    
+    result.data[i] = v.data[i];
 }
 
 template <typename T>
 __global__ internal void vec_set_range_kernel(vec<T> v, vec<T> data, size offset)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (i >= data.elements)
-        return;
+    if (i >= data.elements) return;
     
     v.data[offset + i] = data.data[i];
 }
@@ -27,9 +32,7 @@ template <typename T>
 __global__ internal void vec_add_kernel(vec<T> a, vec<T> b)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (i >= a.elements)
-        return;
+    if (i >= a.elements) return;
     
     a.data[i] += b.data[i];
 }
@@ -38,32 +41,26 @@ template <typename T>
 __global__ internal void vec_scale_kernel(vec<T> v, T c)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (i >= v.elements)
-        return;
+    if (i >= v.elements) return;
     
     v.data[i] *= c;
 }
 
 template <typename T>
-__global__ internal void vec_reciprocal_kernel(vec<T> v)
+__global__ internal void vec_scale_inv_kernel(vec<T> v, T c)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (i >= v.elements)
-        return;
+    if (i >= v.elements) return;
     
     if (v.data[i])
-        v.data[i] = (T)1 / v.data[i];
+        v.data[i] = (T)c / v.data[i];
 }
 
 template <typename T>
 __global__ internal void vec_had_kernel(vec<T> a, vec<T> b)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (i >= a.elements)
-        return;
+    if (i >= a.elements) return;
     
     a.data[i] *= b.data[i];
 }
@@ -146,7 +143,7 @@ vec<T> vec_zeros_gpu(size elements)
 
     size mem = elements*sizeof(T);
     cuda_call(cudaMalloc(&result.data, mem));
-    cuda_call(cudaMemset(result.data, 0, mem));
+    cuda_call(cudaMemset(result.data, 4, mem));
 
     return result;
 }
@@ -157,6 +154,17 @@ vec<T> vec_full_gpu(size elements, T fill_value)
     ThreadLayout layout = calc_thread_dim(elements);
     vec<T> result = vec_zeros_gpu<T>(elements);
     vec_full_kernel<<<layout.grid_dim, layout.block_dim>>>(result, fill_value);
+    sync_kernel();
+
+    return result;
+}
+
+template <typename T>
+vec<T> vec_copy_gpu(vec<T> v)
+{
+    ThreadLayout layout = calc_thread_dim(v.elements);
+    vec<T> result = vec_zeros_gpu<T>(v.elements);
+    vec_copy_kernel<<<layout.grid_dim, layout.block_dim>>>(result, v);
     sync_kernel();
 
     return result;
@@ -187,10 +195,10 @@ void vec_scale_gpu(vec<T> v, T c)
 }
 
 template <typename T>
-vec<T> vec_reciprocal_gpu(vec<T> v)
+vec<T> vec_scale_inv_gpu(vec<T> v, T c)
 {
     ThreadLayout layout = calc_thread_dim(v.elements);
-    vec_reciprocal_kernel<<<layout.grid_dim, layout.block_dim>>>(v);
+    vec_scale_inv_kernel<<<layout.grid_dim, layout.block_dim>>>(v, c);
     sync_kernel();
     return v;
 }
@@ -224,29 +232,32 @@ T vec_sum_gpu(vec<T> v)
 #define VEC_TO(T) INST_TEMPLATE(vec_to, void, T, (vec<T>* v, Device device))
 #define VEC_ZEROS_GPU(T) INST_TEMPLATE(vec_zeros_gpu, vec<T>, T, (size elements))
 #define VEC_FULL_GPU(T) INST_TEMPLATE(vec_full_gpu, vec<T>, T, (size elements, T fill_value))
+#define VEC_COPY_GPU(T) INST_TEMPLATE(vec_copy_gpu, vec<T>, T, (vec<T> v))
 #define VEC_SET_RANGE_GPU(T) INST_TEMPLATE(vec_set_range_gpu, void, T, (vec<T> v, vec<T> data, size offset))
 #define VEC_ADD_GPU(T) INST_TEMPLATE(vec_add_gpu, void, T, (vec<T> a, vec<T> b))
 #define VEC_SCALE_GPU(T) INST_TEMPLATE(vec_scale_gpu, void, T, (vec<T> v, T c))
-#define VEC_RECIPROCAL_GPU(T) INST_TEMPLATE(vec_reciprocal_gpu, vec<T>, T, (vec<T> v))
+#define VEC_SCALE_INV_GPU(T) INST_TEMPLATE(vec_scale_inv_gpu, vec<T>, T, (vec<T> v, T c))
 #define VEC_HAD_GPU(T) INST_TEMPLATE(vec_had_gpu, void, T, (vec<T> a, vec<T> b))
 #define VEC_SUM_GPU(T) INST_TEMPLATE(vec_sum_gpu, T, T, (vec<T> v))
 
 INST_ALL_TYPES(VEC_TO)
 INST_ALL_TYPES(VEC_ZEROS_GPU)
 INST_ALL_TYPES(VEC_FULL_GPU)
+INST_ALL_TYPES(VEC_COPY_GPU)
 INST_ALL_TYPES(VEC_SET_RANGE_GPU)
 INST_ALL_TYPES(VEC_ADD_GPU)
 INST_ALL_TYPES(VEC_SCALE_GPU)
-INST_ALL_TYPES(VEC_RECIPROCAL_GPU)
+INST_ALL_TYPES(VEC_SCALE_INV_GPU)
 INST_ALL_TYPES(VEC_HAD_GPU)
 INST_ALL_TYPES(VEC_SUM_GPU)
 
 #undef VEC_TO
 #undef VEC_ZEROS_GPU
 #undef VEC_FULL_GPU
+#undef VEC_COPY_GPU
 #undef VEC_SET_RANGE_GPU
 #undef VEC_ADD_GPU
 #undef VEC_SCALE_GPU
-#undef VEC_RECIPROCAL_GPU
+#undef VEC_SCALE_INV_GPU
 #undef VEC_HAD_GPU
 #undef VEC_SUM_GPU

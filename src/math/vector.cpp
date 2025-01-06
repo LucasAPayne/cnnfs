@@ -58,6 +58,28 @@ internal vec<T> vec_full(size elements, T fill_value, Device device)
     return result;
 }
 
+template <typename T>
+internal vec<T> vec_copy(vec<T> v)
+{
+    vec<T> result = {};
+    
+    switch (v.device)
+    {
+        case Device_CPU:
+        {
+            result = vec_zeros<T>(v.elements);
+            for (size i = 0; i < v.elements; ++i)
+                result[i] = v[i];
+        } break;
+
+        case Device_GPU: result = vec_copy_gpu(v); break;
+
+        default: break;
+    }
+    
+    return result;
+}
+
 vec<f32> vec_rand_uniform(f32 min, f32 max, size n)
 {
     vec<f32> result = vec_zeros<f32>(n);
@@ -149,44 +171,103 @@ internal void vec_print(vec<T> v)
 }
 
 template <typename T>
-internal vec<T> vec_reciprocal(vec<T> v)
-{
-    switch (v.device)
-    {
-        case Device_CPU:
-        {
-            for (size i = 0; i < v.elements; ++i)
-                v[i] = (T)1 / v[i];
-        } break;
-
-        case Device_GPU: vec_reciprocal_gpu(v); break;
-
-        default: break;
-    }
-
-    return v;
-}
-
-template <typename T>
-internal vec<T> vec_had(vec<T> a, vec<T> b)
+internal vec<T> vec_add(vec<T> a, vec<T> b, b32 in_place)
 {
     ASSERT(a.elements == b.elements);
     ASSERT(a.device == b.device);
+
+    vec<T> result = in_place ? a : vec_copy(a);
 
     switch (a.device)
     {
         case Device_CPU:
         {
             for (size i = 0; i < a.elements; ++i)
-                a[i] *= b[i];
+                result[i] += b[i];
         } break;
 
-        case Device_GPU: vec_had_gpu(a, b); break;
+        case Device_GPU: vec_add_gpu(result, b); break;
 
         default: break;
     }
 
-    return a;
+    return result;
+}
+
+template <typename T>
+internal vec<T> vec_scale(vec<T> v, T c, b32 in_place)
+{
+    vec<T> result = in_place ? v : vec_copy(v);
+
+    switch (v.device)
+    {
+        case Device_CPU:
+        {
+            for (size i = 0; i < result.elements; ++i)
+                result[i] *= c;
+        } break;
+
+        case Device_GPU: vec_scale_gpu(result, c); break;
+
+        default: break;
+    }
+
+    return result;
+}
+
+template <typename T>
+internal vec<T> vec_scale_inv(vec<T> v, T c, b32 in_place)
+{
+    vec<T> result = in_place ? v : vec_copy(v);
+
+    switch (v.device)
+    {
+        case Device_CPU:
+        {
+            for (size i = 0; i < result.elements; ++i)
+            {
+                if (result[i] != (T)0)
+                    result[i] = (T)c / result[i];
+            }
+        } break;
+
+        case Device_GPU: vec_scale_inv_gpu(result, c); break;
+
+        default: break;
+    }
+
+    return result;
+}
+
+template <typename T>
+internal vec<T> vec_reciprocal(vec<T> v, b32 in_place)
+{
+    vec<T> result = vec_scale_inv(v, (T)1, in_place);
+    return result;
+}
+
+template <typename T>
+internal vec<T> vec_had(vec<T> a, vec<T> b, b32 in_place)
+{
+    ASSERT(a.elements == b.elements);
+    ASSERT(a.device == b.device);
+
+    vec<T> result = in_place ? a : vec_copy(a);
+
+    switch (a.device)
+    {
+        case Device_CPU:
+        {
+            for (size i = 0; i < result.elements; ++i)
+                result[i] *= b[i];
+        } break;
+
+        case Device_GPU: vec_had_gpu(result, b); break;
+
+        default: break;
+    }
+
+    return result;
 }
 
 template <typename T>
