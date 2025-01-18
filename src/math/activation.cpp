@@ -11,7 +11,7 @@ internal void relu_forward(mat<f32> inputs)
             for (size row = 0; row < inputs.rows; ++row)
             {
                 for (size col = 0; col < inputs.cols; ++col)
-                    mat_set_val(inputs, row, col, max(0.0f, mat_at(inputs, row, col)));
+                    inputs(row, col) = max(0.0f, inputs(row, col));
             }
         } break;
 
@@ -30,7 +30,7 @@ internal void relu_forward(mat<f64> inputs)
             for (size row = 0; row < inputs.rows; ++row)
             {
                 for (size col = 0; col < inputs.cols; ++col)
-                    mat_set_val(inputs, row, col, max(0.0, mat_at(inputs, row, col)));
+                    inputs(row, col) = max(0.0, inputs(row, col));
             }
         } break;
 

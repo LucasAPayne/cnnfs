@@ -169,8 +169,8 @@ void exp_mat(mat<f32> m)
             {
                 for (size row = 0; row < m.rows; ++row)
                 {
-                    f32 val = expf(mat_at(m, row, col));
-                    mat_set_val(m, row, col, val);
+                    f32 val = expf(m(row, col));
+                    m(row, col) = val;
                 }
             }
         } break;
@@ -191,8 +191,8 @@ void exp_mat(mat<f64> m)
             {
                 for (size row = 0; row < m.rows; ++row)
                 {
-                    f64 val = exp(mat_at(m, row, col));
-                    mat_set_val(m, row, col, val);
+                    f64 val = exp(m(row, col));
+                    m(row, col) = val;
                 }
             }
         } break;

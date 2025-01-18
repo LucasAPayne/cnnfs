@@ -22,6 +22,18 @@ struct mat
     size cols;
     T* data;
     Device device;
+
+    /* NOTE(lucas): The () operator is used over the [] operator because [] only accepts a single value.
+     * To implement this, a matrix would have to be made up of row vectors, or one would have to be constructed
+     * so that another [] operator can be chained on the result.
+     * Therefore, it is simply more efficient and convenient to use the () operator instead.
+     */
+    inline T& operator()(size row, size col)
+    {
+        ASSERT(row < rows);
+        ASSERT(col < cols);
+        return data[row*cols + col];
+    }
 };
 
 template <typename T>
@@ -96,15 +108,3 @@ internal void mat_had(mat<T> a, mat<T> b);
 // Sum each row or column of a matrix and return the result as a vector.
 template <typename T>
 internal vec<T> mat_sum(mat<T> m, Axis axis=Axis_Rows);
-
-template <typename T>
-internal inline T mat_at(mat<T> m, size row, size col)
-{
-    return m.data[m.cols*row + col];
-}
-
-template <typename T>
-internal inline void mat_set_val(mat<T> m, size row, size col, T val)
-{
-    m.data[m.cols*row + col] = val;
-}

@@ -51,7 +51,7 @@ internal mat<T> mat_full(size rows, size cols, T fill_value, Device device)
             for (size row = 0; row < result.rows; ++row)
             {
                 for (size col = 0; col < result.cols; ++col)
-                    mat_set_val(result, row, col, fill_value);
+                    result(row, col) = fill_value;
             }
         } break;
 
@@ -71,7 +71,7 @@ mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols)
     for (size row = 0; row < rows; ++row)
     {
         for (size col = 0; col < cols; ++col)
-           mat_set_val(result, row, col, rand_f32_uniform(min, max));
+           result(row, col) = rand_f32_uniform(min, max);
     }
     
     return result;
@@ -84,7 +84,7 @@ mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, size rows, size cols)
     for (size row = 0; row < rows; ++row)
     {
         for (size col = 0; col < cols; ++col)
-           mat_set_val(result, row, col, rand_f32_gauss(mean, std_dev));
+           result(row, col) = rand_f32_gauss(mean, std_dev);
     }
     
     return result;
@@ -97,7 +97,7 @@ mat<f32> mat_rand_gauss_standard(size rows, size cols)
     for (size row = 0; row < rows; ++row)
     {
         for (size col = 0; col < cols; ++col)
-           mat_set_val(result, row, col, rand_f32_gauss_standard());
+           result(row, col) = rand_f32_gauss_standard();
     }
     
     return result;
@@ -115,7 +115,7 @@ internal void mat_set_row(mat<T> m, vec<T> data, size row)
         case Device_CPU:
         {
             for (size col = 0; col < m.cols; ++col)
-                mat_set_val(m, row, col, data[col]);
+                m(row, col) = data[col];
         } break;
 
         case Device_GPU: mat_set_row_gpu(m, data, row); break;
@@ -136,7 +136,7 @@ internal void mat_set_col(mat<T> m, vec<T> data, size col)
         case Device_CPU:
         {
             for (size row = 0; row < m.rows; ++col)
-                mat_set_val(m, row, col, data[row]);
+                m(row, col) = data[row];
         } break;
 
         case Device_GPU: mat_set_col_gpu(m, data, col); break;
@@ -182,7 +182,7 @@ internal void mat_set_row_range(mat<T> m, vec<T> data, size row, size row_offset
         case Device_CPU:
         {
             for (size i = 0; i < data.elements; ++i)
-                mat_set_val(m, row, row_offset + i, data[i]);
+                m(row, row_offset + i) =  data[i];
         } break;
 
         case Device_GPU: mat_set_row_range_gpu(m, data, row, row_offset); break;
@@ -201,7 +201,7 @@ internal void mat_set_col_range(mat<T> m, vec<T> data, size col, size col_offset
         case Device_CPU:
         {
             for (size i = 0; i < data.elements; ++i)
-                mat_set_val(m, col_offset + i, col, data[i]);
+                m(col_offset + i, col) = data[i];
         } break;
 
         case Device_GPU: mat_set_col_range_gpu(m, data, col, col_offset); break;
@@ -225,16 +225,16 @@ internal void mat_print(mat<T> m)
         for (size col = 0; col < m.cols; ++col)
         {
             int w = 0;
-            if constexpr      (std::is_same_v<T, u8>)  w = snprintf(0, 0, "%hhu", mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, u16>) w = snprintf(0, 0, "%hu",  mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, u32>) w = snprintf(0, 0, "%u",   mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, u64>) w = snprintf(0, 0, "%llu", mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, i8>)  w = snprintf(0, 0, "%hhd", mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, i16>) w = snprintf(0, 0, "%hd",  mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, i32>) w = snprintf(0, 0, "%d",   mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, i64>) w = snprintf(0, 0, "%lld", mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, f32>) w = snprintf(0, 0, "%f",   mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, f64>) w = snprintf(0, 0, "%f",   mat_at(m, row, col));
+            if constexpr      (std::is_same_v<T, u8>)  w = snprintf(0, 0, "%hhu", m(row, col));
+            else if constexpr (std::is_same_v<T, u16>) w = snprintf(0, 0, "%hu",  m(row, col));
+            else if constexpr (std::is_same_v<T, u32>) w = snprintf(0, 0, "%u",   m(row, col));
+            else if constexpr (std::is_same_v<T, u64>) w = snprintf(0, 0, "%llu", m(row, col));
+            else if constexpr (std::is_same_v<T, i8>)  w = snprintf(0, 0, "%hhd", m(row, col));
+            else if constexpr (std::is_same_v<T, i16>) w = snprintf(0, 0, "%hd",  m(row, col));
+            else if constexpr (std::is_same_v<T, i32>) w = snprintf(0, 0, "%d",   m(row, col));
+            else if constexpr (std::is_same_v<T, i64>) w = snprintf(0, 0, "%lld", m(row, col));
+            else if constexpr (std::is_same_v<T, f32>) w = snprintf(0, 0, "%f",   m(row, col));
+            else if constexpr (std::is_same_v<T, f64>) w = snprintf(0, 0, "%f",   m(row, col));
             
             if (width < w)
                 width = w;
@@ -251,16 +251,16 @@ internal void mat_print(mat<T> m)
         {
             if (col != 0) printf(", ");
 
-            if constexpr (std::is_same_v<T, u8>)       printf("%hhu", mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, u16>) printf("%hu",  mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, u32>) printf("%u",   mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, u64>) printf("%llu", mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, i8>)  printf("%hhd", mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, i16>) printf("%hd",  mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, i32>) printf("%d",   mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, i64>) printf("%lld", mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, f32>) printf("%f",   mat_at(m, row, col));
-            else if constexpr (std::is_same_v<T, f64>) printf("%f",   mat_at(m, row, col));
+            if constexpr (std::is_same_v<T, u8>)       printf("%hhu", m(row, col));
+            else if constexpr (std::is_same_v<T, u16>) printf("%hu",  m(row, col));
+            else if constexpr (std::is_same_v<T, u32>) printf("%u",   m(row, col));
+            else if constexpr (std::is_same_v<T, u64>) printf("%llu", m(row, col));
+            else if constexpr (std::is_same_v<T, i8>)  printf("%hhd", m(row, col));
+            else if constexpr (std::is_same_v<T, i16>) printf("%hd",  m(row, col));
+            else if constexpr (std::is_same_v<T, i32>) printf("%d",   m(row, col));
+            else if constexpr (std::is_same_v<T, i64>) printf("%lld", m(row, col));
+            else if constexpr (std::is_same_v<T, f32>) printf("%f",   m(row, col));
+            else if constexpr (std::is_same_v<T, f64>) printf("%f",   m(row, col));
         }
         printf("]");
         
@@ -292,10 +292,7 @@ internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
             for (size i = 0; i < target.cols; ++i)
             {
                 for (size j = 0; j < target.cols; ++j)
-                {
-                    T val = mat_at(orig, i, 0);
-                    mat_set_val(result, i, j, val);
-                }
+                    result(i, j) = orig(i, 0);
             }
         } break;
 
@@ -326,10 +323,7 @@ internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
             for (size i = 0; i < target.rows; ++i)
             {
                 for (size j = 0; j < target.cols; ++j)
-                {
-                    T val = mat_at(orig, 0, j);
-                    mat_set_val(result, i, j, val);
-                }
+                    result(i, j) = orig(0, j);
             }
         } break;
 
@@ -355,10 +349,7 @@ internal void mat_add(mat<T> a, mat<T> b)
             for (size i = 0; i < a.rows; ++i)
             {
                 for (size j = 0; j < a.cols; ++j)
-                {
-                    T val = mat_at(a, i, j) + mat_at(b, i, j);
-                    mat_set_val(a, i, j, val);
-                }
+                    a(i, j) += b(i, j);
             }
         } break;
 
@@ -434,10 +425,7 @@ internal void mat_scale(mat<T> m, T scale)
             for (size row = 0; row < m.rows; ++row)
             {
                 for (size col = 0; col < m.cols; ++col)
-                {
-                    T element = mat_at(m, row, col);
-                    mat_set_val(m, row, col, element*scale);
-                }
+                    m(row, col) *= scale;
             }
         } break;
 
@@ -457,10 +445,7 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
             for (size row = 0; row < m.rows; ++row)
             {
                 for (size col = 0; col < m.cols; ++col)
-                {
-                    T element = mat_at(m, row, col);
-                    mat_set_val(m, row, col, element*scale[row]);
-                }
+                    m(row, col) *= scale[row];
             }
         } break;
 
@@ -469,10 +454,7 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
             for (size row = 0; row < m.rows; ++row)
             {
                 for (size col = 0; col < m.cols; ++col)
-                {
-                    T element = mat_at(m, row, col);
-                    mat_set_val(m, row, col, element*scale[col]);
-                }
+                    m(row, col) *= scale[col];
             }
         } break;
 
@@ -511,9 +493,9 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
                 {
                     T sum = 0;
                     for (size k = 0; k < a.cols; ++k)
-                        sum += mat_at(a, i, k) * mat_at(b, k, j);
+                        sum += a(i, k) * b(k, j);
                     
-                    mat_set_val(result, i, j, sum);
+                    result(i, j) = sum;
                 }
             }
         } break;
@@ -540,10 +522,7 @@ internal void mat_had(mat<T> a, mat<T> b)
             for (size row = 0; row < a.rows; ++row)
             {
                 for (size col = 0; col < a.cols; ++col)
-                {
-                    T val = mat_at(a, row, col) * mat_at(b, row, col);
-                    mat_set_val(a, row, col, val);
-                }
+                    a(row, col) *= b(row, col);
             }
         } break;
 
@@ -565,7 +544,7 @@ internal vec<T> mat_sum_cpu(mat<T> m, Axis axis)
             for (size col = 0; col < m.cols; ++col)
             {
                 for (size row = 0; row < m.rows; ++row)
-                    result[row] += mat_at(m, row, col);
+                    result[row] += m(row, col);
             }
         } break;
 
@@ -575,7 +554,7 @@ internal vec<T> mat_sum_cpu(mat<T> m, Axis axis)
             for (size col = 0; col < m.cols; ++col)
             {
                 for (size row = 0; row < m.rows; ++row)
-                    result[col] += mat_at(m, row, col);
+                    result[col] += m(row, col);
             }
         } break;
 
