@@ -17,6 +17,9 @@ template <typename T>
 mat<T> mat_full_gpu(size rows, size cols, T fill_value);
 
 template <typename T>
+mat<T> mat_copy_gpu(mat<T> m);
+
+template <typename T>
 void mat_set_row_gpu(mat<T> m, vec<T> data, size row);
 
 template <typename T>

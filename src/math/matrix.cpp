@@ -63,6 +63,31 @@ internal mat<T> mat_full(size rows, size cols, T fill_value, Device device)
     return result;
 }
 
+template <typename T>
+internal mat<T> mat_copy(mat<T> m)
+{
+    mat<T> result = {};
+    
+    switch (m.device)
+    {
+        case Device_CPU:
+        {
+            result = mat_zeros<T>(m.rows, m.cols);
+            for (size row = 0; row < m.rows; ++row)
+            {
+                for (size col = 0; col < m.cols; ++col)
+                    result(row, col) = m(row, col);
+            }
+        } break;
+
+        case Device_GPU: result = mat_copy_gpu(m); break;
+
+        default: break;
+    }
+    
+    return result;
+}
+
 mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols)
 {
     // TODO(lucas): Use set row/col range?
@@ -336,11 +361,13 @@ internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
 }
 
 template <typename T>
-internal void mat_add(mat<T> a, mat<T> b)
+internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place)
 {
     ASSERT(a.rows == b.rows);
     ASSERT(a.cols == b.cols);
     ASSERT(a.device == b.device);
+
+    mat<T> result = in_place ? a : mat_copy(a);
 
     switch (a.device)
     {
@@ -357,6 +384,8 @@ internal void mat_add(mat<T> a, mat<T> b)
 
         default: break;
     }
+
+    return result;
 }
 
 template <typename T>
@@ -391,25 +420,13 @@ internal mat<T> mat_stretch_add(mat<T> a, mat<T> b)
 	if ((a.rows != b.rows) || (a.cols != b.cols))
 	{
 		if (b_row_vec)
-        {
-			result = mat_stretch_rows(b, a);
-            mat_add(result, a);
-        }
+			result = mat_add(a, mat_stretch_rows(b, a));
 		else if (b_col_vec)
-        {
-			result = mat_stretch_cols(b, a);
-            mat_add(result, a);
-        }
+			result = mat_add(a, mat_stretch_cols(b, a));
 		else if (a_row_vec)
-        {
-			result = mat_stretch_cols(a, b);
-            mat_add(result, b);
-        }
+			result = mat_add(a, mat_stretch_cols(a, b));
 		else if (a_col_vec)
-        {
-			result = mat_stretch_cols(a, b);
-            mat_add(result, b);
-        }
+			result = mat_add(a, mat_stretch_cols(a, b));
 	}
 
     return result;

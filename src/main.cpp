@@ -33,7 +33,7 @@ int main(void)
 {
     rand_seed(123);
 
-    Device device = Device_GPU;
+    Device device = Device_CPU;
 
     mat<f32> data;
     vec<u32> labels;

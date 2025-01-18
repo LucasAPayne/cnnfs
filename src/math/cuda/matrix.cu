@@ -34,21 +34,28 @@ __global__ internal void mat_full_kernel(mat<T> result, T fill_value)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (row >= result.rows || col >= result.cols)
-        return;
+    if (row >= result.rows || col >= result.cols) return;
 
     size i = row*result.cols + col;
     result.data[i] = fill_value;
 }
 
 template <typename T>
+__global__ internal void mat_copy_kernel(mat<T> result, mat<T> m)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= result.rows || col >= result.cols) return;
+
+    size i = row*result.cols + col;
+    result.data[i] = m.data[i];
+}
+
+template <typename T>
 __global__ internal void mat_set_row_kernel(mat<T> m, vec<T> v, size row)
 {
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (col >= m.cols)
-        return;
+    if (col >= m.cols) return;
 
     size i = row*m.cols + col;
     m.data[i] = v.data[col];
@@ -58,9 +65,7 @@ template <typename T>
 __global__ internal void mat_set_col_kernel(mat<T> m, vec<T> v, size col)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
-
-    if (row >= m.rows)
-        return;
+    if (row >= m.rows) return;
 
     size i = row*m.cols + col;
     m.data[i] = v.data[row];
@@ -70,9 +75,7 @@ template <typename T>
 __global__ internal void mat_set_row_range_kernel(mat<T> m, vec<T> v, size row, size row_offset)
 {
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (col >= v.elements)
-        return;
+    if (col >= v.elements) return;
 
     size i = m.cols*row + (row_offset + col);
     m.data[i] = v.data[col];
@@ -82,9 +85,7 @@ template <typename T>
 __global__ internal void mat_set_col_range_kernel(mat<T> m, vec<T> v, size col, size col_offset)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
-
-    if (row >= v.elements)
-        return;
+    if (row >= v.elements) return;
     
     size i = m.cols*(col_offset + row) + col;
     m.data[i] = v.data[row];
@@ -95,9 +96,7 @@ __global__ internal void mat_stretch_cols_kernel(mat<T> orig, mat<T> target, mat
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (row >= target.rows || col >= target.cols)
-        return;
+    if (row >= target.rows || col >= target.cols) return;
 
     result.data[result.cols*row + col] = orig.data[col];
 }
@@ -107,9 +106,7 @@ __global__ internal void mat_stretch_rows_kernel(mat<T> orig, mat<T> target, mat
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (row >= target.rows || col >= target.cols)
-        return;
+    if (row >= target.rows || col >= target.cols) return;
 
     result.data[result.cols*row + col] = orig.data[row];
 }
@@ -119,9 +116,7 @@ __global__ internal void mat_add_kernel(mat<T> a, mat<T> b)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (row >= a.rows || col >= b.cols)
-        return;
+    if (row >= a.rows || col >= b.cols) return;
     
     size i = a.cols*row + col;
     a.data[i] += b.data[i];
@@ -132,9 +127,7 @@ __global__ internal void mat_scale_kernel(mat<T> m, T value)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (row >= m.rows || col >= m.cols)
-        return;
+    if (row >= m.rows || col >= m.cols) return;
     
     size i = m.cols*row + col;
     m.data[i] *= value;
@@ -146,9 +139,7 @@ __global__ internal void mat_mul_kernel(mat<T> a, mat<T> b, mat<T> result)
     // NOTE(lucas): rows and cols refer to result dimensions
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (row >= a.rows || col >= b.cols)
-        return;
+    if (row >= a.rows || col >= b.cols) return;
 
     T sum = 0;
     for (size k = 0; k < a.cols; ++k)
@@ -162,9 +153,7 @@ __global__ internal void mat_had_kernel(mat<T> a, mat<T> b)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
-
-    if (row >= a.rows || col >= b.cols)
-        return;
+    if (row >= a.rows || col >= b.cols) return;
     
     size i = a.cols*row + col;
     a.data[i] *= b.data[i];
@@ -235,6 +224,17 @@ mat<T> mat_full_gpu(size rows, size cols, T fill_value)
     mat<T> result = mat_zeros_gpu<T>(rows, cols);
     ThreadLayout layout = calc_thread_dim(rows, cols);
     mat_full_kernel<<<layout.grid_dim, layout.block_dim>>>(result, fill_value);
+    sync_kernel();
+
+    return result;
+}
+
+template <typename T>
+mat<T> mat_copy_gpu(mat<T> m)
+{
+    mat<T> result = mat_zeros_gpu<T>(m.rows, m.cols);
+    ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
+    mat_copy_kernel<<<layout.grid_dim, layout.block_dim>>>(result, m);
     sync_kernel();
 
     return result;
@@ -399,6 +399,7 @@ vec<T> mat_sum_gpu(mat<T> m, Axis axis)
 #define MAT_FREE_DATA_GPU(T) INST_TEMPLATE(mat_free_data_gpu, void, T, (mat<T> m))
 #define MAT_ZEROS_GPU(T) INST_TEMPLATE(mat_zeros_gpu, mat<T>, T, (size rows, size cols))
 #define MAT_FULL_GPU(T) INST_TEMPLATE(mat_full_gpu, mat<T>, T, (size rows, size cols, T fill_value))
+#define MAT_COPY_GPU(T) INST_TEMPLATE(mat_copy_gpu, mat<T>, T, (mat<T> m))
 #define MAT_SET_ROW_GPU(T) INST_TEMPLATE(mat_set_row_gpu, void, T, (mat<T> m, vec<T> data, size row))
 #define MAT_SET_COL_GPU(T) INST_TEMPLATE(mat_set_col_gpu, void, T, (mat<T> m, vec<T> data, size col))
 #define MAT_SET_ROW_RANGE_GPU(T) INST_TEMPLATE(mat_set_row_range_gpu, void, T, (mat<T> m, vec<T> data, size row, size row_offset))
@@ -416,6 +417,7 @@ INST_ALL_TYPES(MAT_TO)
 INST_ALL_TYPES(MAT_FREE_DATA_GPU)
 INST_ALL_TYPES(MAT_ZEROS_GPU)
 INST_ALL_TYPES(MAT_FULL_GPU)
+INST_ALL_TYPES(MAT_COPY_GPU)
 INST_ALL_TYPES(MAT_SET_ROW_GPU)
 INST_ALL_TYPES(MAT_SET_COL_GPU)
 INST_ALL_TYPES(MAT_SET_ROW_RANGE_GPU)
@@ -433,6 +435,7 @@ INST_ALL_TYPES(MAT_SUM_GPU)
 #undef MAT_FREE_DATA_GPU
 #undef MAT_ZEROS_GPU
 #undef MAT_FULL_GPU
+#undef MAT_COPY_GPU
 #undef MAT_SET_ROW_GPU
 #undef MAT_SET_COL_GPU
 #undef MAT_SET_ROW_RANGE_GPU

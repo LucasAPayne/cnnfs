@@ -36,6 +36,22 @@ struct mat
     }
 };
 
+// Addition with copy, does not modify parameters
+template <typename T>
+mat<T> operator+(mat<T> a, mat<T> b)
+{
+    mat<T> result = mat_add(a, b, false);
+    return result;
+}
+
+// In-place addition
+template <typename T>
+mat<T> operator+=(mat<T> a, mat<T> b)
+{
+    mat<T> result = mat_add(a, b);
+    return result;
+}
+
 template <typename T>
 internal mat<T> mat_init(size rows, size cols, T* data, Device device=Device_CPU);
 
@@ -44,6 +60,9 @@ internal mat<T> mat_zeros(size rows, size cols, Device device=Device_CPU);
 
 template <typename T>
 internal mat<T> mat_full(size rows, size cols, T fill_value, Device device=Device_CPU);
+
+template <typename T>
+internal mat<T> mat_copy(mat<T> m);
 
 mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols);
 mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, size rows, size cols);
@@ -81,7 +100,7 @@ template <typename T>
 internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target);
 
 template <typename T>
-internal void mat_add(mat<T> a, mat<T> b);
+internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place=false);
 
 template <typename T>
 internal mat<T> mat_stretch_add(mat<T> a, mat<T> b);

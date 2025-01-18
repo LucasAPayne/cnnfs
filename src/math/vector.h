@@ -35,8 +35,8 @@ vec<T> operator+(vec<T> a, vec<T> b)
 template <typename T>
 vec<T> operator+=(vec<T> a, vec<T> b)
 {
-    vec_add(a, b);
-    return a;
+    vec<T> result = vec_add(a, b);
+    return result;
 }
 
 // vector-scalar multiplation (scale) with copy, does not modify parameters
@@ -51,8 +51,8 @@ vec<T> operator*(vec<T> v, T c)
 template <typename T>
 vec<T> operator*=(vec<T> v, T c)
 {
-    vec_scale(v, c);
-    return v;
+    vec<T> result = vec_scale(v, c);
+    return result;
 }
 
 // scalar-vector multiplication (scale) with copy, does not modify parameters
@@ -67,16 +67,16 @@ vec<T> operator*(T c, vec<T> v)
 template <typename T>
 vec<T> operator*=(T c, vec<T> v)
 {
-    vec_scale(v, c);
-    return v;
+    vec<T> result = vec_scale(v, c);
+    return result;
 }
 
 // In-place vector-vector multiplication (Hadamard product)
 template <typename T>
 vec<T> operator *=(vec<T> a, vec<T> b)
 {
-    vec_had(a, b);
-    return a;
+    vec<T> result = vec_had(a, b);
+    return result;
 }
 
 // In-place vector-scalar division (scale)
@@ -84,8 +84,8 @@ template <typename T>
 vec<T> operator/=(vec<T> v, T c)
 {
     T scale = (T)1/c;
-    vec_scale(v, scale);
-    return v;
+    vec<T> result = vec_scale(v, scale);
+    return result;
 }
 
 // vector-scalar division (scale) with copy, does not modify parameters
