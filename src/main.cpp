@@ -2,12 +2,7 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Add operator overloading for in-place operations.
-// TODO(lucas): Add copy operations CPU and GPU, including operator overloading.
-// For these, copy the first argument and then do the in-place operation.
-// TODO(lucas): Allow operations b/w different types to go in either order (e.g., vector-scalar or scalar-vector)
-// TODO(lucas): Matrix and vector functions should still operate in-place, but also return the value for more expressiveness.
-// TODO(lucas): Some math and other functions should have an option of operating in-place or returning a copy.
+// TODO(lucas): Add operator overloading
 
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
 // TODO(lucas): Look into CUDA warnings
@@ -33,7 +28,7 @@ int main(void)
 {
     rand_seed(123);
 
-    Device device = Device_CPU;
+    Device device = Device_GPU;
 
     mat<f32> data;
     vec<u32> labels;

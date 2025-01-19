@@ -52,6 +52,48 @@ mat<T> operator+=(mat<T> a, mat<T> b)
     return result;
 }
 
+// TODO(lucas): matrix-vector/vector-matrix multiplication operators?
+
+// matrix-scalar multiplation (scale) with copy, does not modify parameters
+template <typename T>
+mat<T> operator*(mat<T> v, T c)
+{
+    mat<T> result = mat_scale(v, c, false);
+    return result;
+}
+
+// In-place matrix-scalar multiplication (scale)
+template <typename T>
+mat<T> operator*=(mat<T> v, T c)
+{
+    mat<T> result = mat_scale(v, c);
+    return result;
+}
+
+// scalar-matrix multiplication (scale) with copy, does not modify parameters
+template <typename T>
+mat<T> operator*(T c, mat<T> v)
+{
+    mat<T> result = mat_scale(v, c, false);
+    return result;
+}
+
+// In-place scalar-matrix multiplication (scale)
+template <typename T>
+mat<T> operator*=(T c, mat<T> v)
+{
+    mat<T> result = vec_mat(v, c);
+    return result;
+}
+
+// In-place matrix-matrix multiplication (Hadamard product)
+template <typename T>
+mat<T> operator *=(mat<T> a, mat<T> b)
+{
+    mat<T> result = mat_had(a, b);
+    return result;
+}
+
 template <typename T>
 internal mat<T> mat_init(size rows, size cols, T* data, Device device=Device_CPU);
 
@@ -100,13 +142,13 @@ template <typename T>
 internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target);
 
 template <typename T>
-internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place=false);
+internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place=true);
 
 template <typename T>
 internal mat<T> mat_stretch_add(mat<T> a, mat<T> b);
 
 template <typename T>
-internal void mat_scale(mat<T> m, T scale);
+internal mat<T> mat_scale(mat<T> m, T scale, b32 in_place=true);
 
 /* Scale a matrix by a vector along either axis
  * such that scaling along the rows will scale the ith value of each row with the ith vector element,
@@ -122,7 +164,7 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b);
  * Matrices must be equal size
  */
 template <typename T>
-internal void mat_had(mat<T> a, mat<T> b);
+internal mat<T> mat_had(mat<T> a, mat<T> b, b32 in_place=true);
 
 // Sum each row or column of a matrix and return the result as a vector.
 template <typename T>

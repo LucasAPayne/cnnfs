@@ -369,18 +369,18 @@ internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place)
 
     mat<T> result = in_place ? a : mat_copy(a);
 
-    switch (a.device)
+    switch (result.device)
     {
         case Device_CPU:
         {
-            for (size i = 0; i < a.rows; ++i)
+            for (size i = 0; i < result.rows; ++i)
             {
-                for (size j = 0; j < a.cols; ++j)
-                    a(i, j) += b(i, j);
+                for (size j = 0; j < result.cols; ++j)
+                    result(i, j) += b(i, j);
             }
         } break;
 
-        case Device_GPU: mat_add_gpu(a, b);
+        case Device_GPU: mat_add_gpu(result, b);
 
         default: break;
     }
@@ -420,36 +420,39 @@ internal mat<T> mat_stretch_add(mat<T> a, mat<T> b)
 	if ((a.rows != b.rows) || (a.cols != b.cols))
 	{
 		if (b_row_vec)
-			result = mat_add(a, mat_stretch_rows(b, a));
+			result = mat_add(mat_stretch_rows(b, a), a);
 		else if (b_col_vec)
-			result = mat_add(a, mat_stretch_cols(b, a));
+			result = mat_add(mat_stretch_cols(b, a), a);
 		else if (a_row_vec)
-			result = mat_add(a, mat_stretch_cols(a, b));
+			result = mat_add(mat_stretch_cols(a, b), a);
 		else if (a_col_vec)
-			result = mat_add(a, mat_stretch_cols(a, b));
+			result = mat_add(mat_stretch_cols(a, b), a);
 	}
 
     return result;
 }
 
 template <typename T>
-internal void mat_scale(mat<T> m, T scale)
+internal mat<T> mat_scale(mat<T> m, T scale, b32 in_place)
 {
-    switch(m.device)
+    mat<T> result = in_place ? m : mat_copy(m);
+    switch(result.device)
     {
         case Device_CPU:
         {
-            for (size row = 0; row < m.rows; ++row)
+            for (size row = 0; row < result.rows; ++row)
             {
-                for (size col = 0; col < m.cols; ++col)
-                    m(row, col) *= scale;
+                for (size col = 0; col < result.cols; ++col)
+                    result(row, col) *= scale;
             }
         } break;
 
-        case Device_GPU: mat_scale_gpu(m, scale);
+        case Device_GPU: mat_scale_gpu(result, scale);
 
         default: break;
     }
+
+    return result;
 }
 
 template <typename T>
@@ -526,27 +529,30 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
 }
 
 template <typename T>
-internal void mat_had(mat<T> a, mat<T> b)
+internal mat<T> mat_had(mat<T> a, mat<T> b, b32 in_place)
 {
     ASSERT(a.rows == b.rows);
     ASSERT(a.cols == b.cols);
     ASSERT(a.device == b.device);
 
-    switch (a.device)
+    mat<T> result = in_place ? a : mat_copy(a);
+    switch (result.device)
     {
         case Device_CPU:
         {
-            for (size row = 0; row < a.rows; ++row)
+            for (size row = 0; row < result.rows; ++row)
             {
-                for (size col = 0; col < a.cols; ++col)
-                    a(row, col) *= b(row, col);
+                for (size col = 0; col < result.cols; ++col)
+                    result(row, col) *= b(row, col);
             }
         } break;
 
-        case Device_GPU: mat_had_gpu(a, b); break;
+        case Device_GPU: mat_had_gpu(result, b); break;
 
         default: break;
     }
+
+    return result;
 }
 
 template <typename T>
