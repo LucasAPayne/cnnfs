@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Add operator overloading
-
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
 // TODO(lucas): Look into CUDA warnings
 

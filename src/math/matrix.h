@@ -54,6 +54,14 @@ mat<T> operator+=(mat<T> a, mat<T> b)
 
 // TODO(lucas): matrix-vector/vector-matrix multiplication operators?
 
+// matrix-matrix multiplication, always returns copy of new matrix, does not modify parameters
+template <typename T>
+mat<T> operator*(mat<T> a, mat<T> b)
+{
+    mat<T> result = mat_mul(a, b);
+    return result;
+}
+
 // matrix-scalar multiplation (scale) with copy, does not modify parameters
 template <typename T>
 mat<T> operator*(mat<T> v, T c)

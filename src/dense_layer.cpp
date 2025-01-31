@@ -16,7 +16,7 @@ DenseLayer dense_layer_init(size inputs, size neurons, ActivationType activation
 
 void dense_layer_forward(DenseLayer* layer, mat<f32> input)
 {
-    layer->output = mat_mul(input, layer->weights);
+    layer->output = input*layer->weights;
     mat<f32> temp = mat_stretch_add(layer->output, layer->biases);
     mat_free_data(layer->output);
     layer->output = temp;
