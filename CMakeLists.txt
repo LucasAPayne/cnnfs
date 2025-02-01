@@ -29,12 +29,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 if (MSVC)
-    # C4100 and C4189 are about unused parameters/variables and are not particularly useful
+    # C4100 and C4189 are about unused parameters/variables and are not particularly useful.
+    # Compiling with nvcc generates warnings C4100 and C4505 for unused formal parameters
+    # and unreferenced local functions, so these are disabled for CUDA.
     # /Oi: Generate intrinsic functions
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:/Oi /WX /W4 /wd4100 /wd4189 /wd4201 /wd4005 /D_CRT_SECURE_NO_WARNINGS>
-        $<$<COMPILE_LANGUAGE:CUDA>:>
+        $<$<COMPILE_LANGUAGE:CUDA>: -Xcompiler="/wd4505">
     )
+    target_link_options(${PROJECT_NAME} PRIVATE $<DEVICE_LINK:-Xcompiler /wd4100>)
 endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
