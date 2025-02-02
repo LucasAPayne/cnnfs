@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#define ARRAY_COUNT(array) (sizeof((array)) / sizeof((array)[0]))
+#define countof(array) (sizeof((array)) / sizeof((array)[0]))
 #define ASSERT(expression) if(!(expression)) {*(int *)0 = 0;}
 
 // NOTE(lucas): Define additional keywords for different uses of static for additional clarity

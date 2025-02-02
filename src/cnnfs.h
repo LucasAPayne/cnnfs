@@ -5,3 +5,4 @@
 #include "datasets.cpp"
 #include "dense_layer.cpp"
 #include "metrics.cpp"
+#include "util/profile.cpp"
