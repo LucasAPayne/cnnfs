@@ -17,7 +17,7 @@ vec<f32> linspace(f32 x1, f32 x2, size n, Device device)
 
         case Device_GPU: result = linspace_gpu(x1, x2, n); break;
 
-        default: break;
+        default: log_invalid_device(device); break;
     }
 
     return result;
@@ -41,7 +41,7 @@ vec<f64> linspace(f64 x1, f64 x2, size n, Device device)
 
         case Device_GPU: result = linspace_gpu(x1, x2, n); break;
 
-        default: break;
+        default: log_invalid_device(device); break;
     }
 
     return result;
@@ -61,7 +61,7 @@ vec<f32> sin_vec(vec<f32> v)
 
         case Device_GPU: result = sin_vec_gpu(v); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 
     return result;
@@ -81,7 +81,7 @@ vec<f64> sin_vec(vec<f64> v)
 
         case Device_GPU: result = sin_vec_gpu(v); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 
     return result;
@@ -101,7 +101,7 @@ vec<f32> cos_vec(vec<f32> v)
 
         case Device_GPU: result = cos_vec_gpu(v); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
     
     return result;
@@ -121,7 +121,7 @@ vec<f64> cos_vec(vec<f64> v)
 
         case Device_GPU: result = cos_vec_gpu(v); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 
     return result;
@@ -139,7 +139,7 @@ void exp_vec(vec<f32> v)
 
         case Device_GPU: exp_vec_gpu(v); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 }
 
@@ -155,7 +155,7 @@ void exp_vec(vec<f64> v)
 
         case Device_GPU: exp_vec_gpu(v); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 }
 
@@ -177,7 +177,7 @@ void exp_mat(mat<f32> m)
 
         case Device_GPU: exp_mat_gpu(m); break;
 
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
 }
 
@@ -199,6 +199,6 @@ void exp_mat(mat<f64> m)
 
         case Device_GPU: exp_mat_gpu(m); break;
 
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
 }

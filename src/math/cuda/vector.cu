@@ -128,9 +128,9 @@ void vec_to(vec<T>* v, Device device)
                 cuda_call(cudaFree(v->data));
                 *v = result;
             }
-        }
+        } break;
 
-        default: break;
+        default: log_invalid_device(device); break;
     }
 }
 

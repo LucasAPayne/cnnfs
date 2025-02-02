@@ -29,7 +29,7 @@ vec<T> vec_zeros(size elements, Device device)
 
         case Device_GPU: result = vec_zeros_gpu<T>(elements); break;
 
-        default: break;
+        default: log_invalid_device(device); break;
     }
     
     ASSERT(result.data);
@@ -52,7 +52,7 @@ internal vec<T> vec_full(size elements, T fill_value, Device device)
 
         case Device_GPU: result = vec_full_gpu(elements, fill_value); break;
 
-        default: break;
+        default: log_invalid_device(device); break;
     }
     
     return result;
@@ -74,7 +74,7 @@ internal vec<T> vec_copy(vec<T> v)
 
         case Device_GPU: result = vec_copy_gpu(v); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
     
     return result;
@@ -127,7 +127,7 @@ internal void vec_set_range(vec<T> v, vec<T> data, size offset)
 
         case Device_GPU: vec_set_range_gpu(v, data, offset); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 }
 
@@ -188,7 +188,7 @@ internal vec<T> vec_add(vec<T> a, vec<T> b, b32 in_place)
 
         case Device_GPU: vec_add_gpu(result, b); break;
 
-        default: break;
+        default: log_invalid_device(a.device); break;
     }
 
     return result;
@@ -209,7 +209,7 @@ internal vec<T> vec_scale(vec<T> v, T c, b32 in_place)
 
         case Device_GPU: vec_scale_gpu(result, c); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 
     return result;
@@ -233,7 +233,7 @@ internal vec<T> vec_scale_inv(vec<T> v, T c, b32 in_place)
 
         case Device_GPU: vec_scale_inv_gpu(result, c); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 
     return result;
@@ -264,7 +264,7 @@ internal vec<T> vec_had(vec<T> a, vec<T> b, b32 in_place)
 
         case Device_GPU: vec_had_gpu(result, b); break;
 
-        default: break;
+        default: log_invalid_device(a.device); break;
     }
 
     return result;
@@ -284,7 +284,7 @@ internal T vec_sum(vec<T> v)
 
         case Device_GPU: vec_sum_gpu(v); break;
 
-        default: break;
+        default: log_invalid_device(v.device); break;
     }
 
     return result;

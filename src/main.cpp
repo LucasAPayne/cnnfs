@@ -2,8 +2,7 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Add logging.
-// TODO(lucas): Log invalid device errors and other assertions.
+// TODO(lucas): Log assertions.
 
 // TODO(lucas): Add RNG for GPU.
 

@@ -32,7 +32,7 @@ internal mat<T> mat_zeros(size rows, size cols, Device device)
 
         case Device_GPU: result = mat_zeros_gpu<T>(rows, cols); break;
 
-        default: break;
+        default: log_invalid_device(device); break;
     }
 
     ASSERT(result.data);
@@ -57,7 +57,7 @@ internal mat<T> mat_full(size rows, size cols, T fill_value, Device device)
 
         case Device_GPU: result = mat_full_gpu<T>(rows, cols, fill_value);
 
-        default: break;
+        default: log_invalid_device(device); break;
     }
 
     return result;
@@ -82,7 +82,7 @@ internal mat<T> mat_copy(mat<T> m)
 
         case Device_GPU: result = mat_copy_gpu(m); break;
 
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
     
     return result;
@@ -145,7 +145,7 @@ internal void mat_set_row(mat<T> m, vec<T> data, size row)
 
         case Device_GPU: mat_set_row_gpu(m, data, row); break;
 
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
 }
 
@@ -166,7 +166,7 @@ internal void mat_set_col(mat<T> m, vec<T> data, size col)
 
         case Device_GPU: mat_set_col_gpu(m, data, col); break;
 
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
 }
 
@@ -212,7 +212,7 @@ internal void mat_set_row_range(mat<T> m, vec<T> data, size row, size row_offset
 
         case Device_GPU: mat_set_row_range_gpu(m, data, row, row_offset); break;
 
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
 }
 
@@ -231,7 +231,7 @@ internal void mat_set_col_range(mat<T> m, vec<T> data, size col, size col_offset
 
         case Device_GPU: mat_set_col_range_gpu(m, data, col, col_offset); break;
 
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
 }
 
@@ -321,9 +321,9 @@ internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
             }
         } break;
 
-        case Device_GPU: result = mat_stretch_cols_gpu(orig, target);
+        case Device_GPU: result = mat_stretch_cols_gpu(orig, target); break;
 
-        default: break;
+        default: log_invalid_device(orig.device); break;
     }
 
     return result;
@@ -352,9 +352,9 @@ internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
             }
         } break;
 
-        case Device_GPU: result = mat_stretch_rows_gpu(orig, target);
+        case Device_GPU: result = mat_stretch_rows_gpu(orig, target); break;
 
-        default: break;
+        default: log_invalid_device(orig.device); break;
     }
 
     return result;
@@ -380,9 +380,9 @@ internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place)
             }
         } break;
 
-        case Device_GPU: mat_add_gpu(result, b);
+        case Device_GPU: mat_add_gpu(result, b); break;
 
-        default: break;
+        default: log_invalid_device(result.device); break;
     }
 
     return result;
@@ -394,8 +394,8 @@ internal void mat_free_data(mat<T> a)
     switch (a.device)
     {
         case Device_CPU: free(a.data); break;
-        case Device_GPU: mat_free_data_gpu(a);
-        default: break;
+        case Device_GPU: mat_free_data_gpu(a); break;
+        default: log_invalid_device(a.device); break;
     }
 }
 
@@ -447,9 +447,9 @@ internal mat<T> mat_scale(mat<T> m, T scale, b32 in_place)
             }
         } break;
 
-        case Device_GPU: mat_scale_gpu(result, scale);
+        case Device_GPU: mat_scale_gpu(result, scale); break;
 
-        default: break;
+        default: log_invalid_device(result.device); break;
     }
 
     return result;
@@ -489,7 +489,7 @@ internal void mat_scale(mat<T> m, vec<T> scale, Axis axis)
     {
         case Device_CPU: mat_scale_cpu(m, scale, axis); break;
         case Device_GPU: mat_scale_gpu(m, scale, axis); break;
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
 }
 
@@ -522,7 +522,7 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
 
         case Device_GPU: result = mat_mul_gpu(a, b); break;
 
-        default: break;
+        default: log_invalid_device(result.device); break;
     }
 
     return result;
@@ -549,7 +549,7 @@ internal mat<T> mat_had(mat<T> a, mat<T> b, b32 in_place)
 
         case Device_GPU: mat_had_gpu(result, b); break;
 
-        default: break;
+        default: log_invalid_device(result.device); break;
     }
 
     return result;
@@ -581,7 +581,7 @@ internal vec<T> mat_sum_cpu(mat<T> m, Axis axis)
             }
         } break;
 
-        default: break;
+        default: log_invalid_device(result.device); break;
     }
 
     return result;
@@ -595,7 +595,7 @@ internal vec<T> mat_sum(mat<T> m, Axis axis)
     {
         case Device_CPU: result = mat_sum_cpu(m, axis); break;
         case Device_GPU: result = mat_sum_gpu(m, axis); break;
-        default: break;
+        default: log_invalid_device(m.device); break;
     }
 
     return result;

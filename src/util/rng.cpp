@@ -50,7 +50,7 @@ struct pcg32_rng {         // Internals are *Private*.
 
 // Make RNG global here so RNG type can be opaque to user
 #define PCG32_INITIALIZER {0x853c49e6748fea9bULL, 0xda3e39cb94b95bdbULL}
-global_variable pcg32_rng pcg32_global = PCG32_INITIALIZER;
+global pcg32_rng pcg32_global = PCG32_INITIALIZER;
 
 // TODO(lucas): In the last part of the computation, rot is a u32, so taking the negative does
 // not make sense mathematically.
@@ -123,8 +123,8 @@ f32 rand_f32_gauss(f32 mean, f32 std_dev)
      * This algorithm generates random Gaussian numbers in pairs, so it keeps track of whether it has
      * already generated the next one and what the value of it is.
      */
-    local_persist b32 has_gauss = false;
-    local_persist f32 next_gauss = 0.0f;
+    persist b32 has_gauss = false;
+    persist f32 next_gauss = 0.0f;
     f32 result = next_gauss;
 
     // Only perform algorithm if there is no spare result

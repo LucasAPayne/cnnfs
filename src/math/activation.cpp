@@ -15,9 +15,9 @@ internal void relu_forward(mat<f32> inputs)
             }
         } break;
 
-        case Device_GPU: relu_forward_gpu(inputs);
+        case Device_GPU: relu_forward_gpu(inputs); break;
 
-        default: break;
+        default: log_invalid_device(inputs.device); break;
     }
 }
 
@@ -34,9 +34,9 @@ internal void relu_forward(mat<f64> inputs)
             }
         } break;
 
-        case Device_GPU: relu_forward_gpu(inputs);
+        case Device_GPU: relu_forward_gpu(inputs); break;
 
-        default: break;
+        default: log_invalid_device(inputs.device); break;
     }
 }
 

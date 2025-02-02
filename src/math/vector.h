@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include <type_traits>
 
+#include "log.h"
+#define log_invalid_device(device) \
+        log_error("[" LOG_FILE_PATH ":" LOG_LINE_NUM "] in " LOG_FUNC_NAME ": Invalid device: %d. " \
+        "Device must be Device_CPU (0) or Device_GPU (1).\n", __FILE__, __LINE__, __func__, device)
+
 template <typename T>
 struct vec
 {

@@ -193,7 +193,7 @@ void mat_to(mat<T>* m, Device device)
             }
         } break;
 
-        default: break;
+        default: log_invalid_device(device); break;
     }
 }
 
