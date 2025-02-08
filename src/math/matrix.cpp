@@ -35,7 +35,7 @@ internal mat<T> mat_zeros(size rows, size cols, Device device)
         default: log_invalid_device(device); break;
     }
 
-    ASSERT(result.data);
+    //ASSERT(result.data);
     return result;
 }
 
@@ -133,7 +133,7 @@ internal void mat_set_row(mat<T> m, vec<T> data, size row)
 {
     // To set a row, the vector must have the same number of elements as
     // the matrix has columns.
-    ASSERT(m.cols == data.elements);
+    //ASSERT(m.cols == data.elements);
 
     switch (m.device)
     {
@@ -154,7 +154,7 @@ internal void mat_set_col(mat<T> m, vec<T> data, size col)
 {
     // To set a column, the vector must have the same number of elements as
     // the matrix has rows.
-    ASSERT(m.rows == data.elements);
+    //ASSERT(m.rows == data.elements);
 
     switch (m.device)
     {
@@ -173,7 +173,7 @@ internal void mat_set_col(mat<T> m, vec<T> data, size col)
 template <typename T>
 vec<T> mat_get_row(mat<T> m, size row)
 {
-    ASSERT(row < m.rows);
+    //ASSERT(row < m.rows);
 
     vec<T> result = {};
     result.elements = m.rows;
@@ -186,7 +186,7 @@ vec<T> mat_get_row(mat<T> m, size row)
 template <typename T>
 vec<T> mat_get_col(mat<T> m, size col)
 {
-    ASSERT(col < m.cols);
+    //ASSERT(col < m.cols);
 
     vec<T> result = {};
     result.elements = m.rows;
@@ -200,7 +200,7 @@ template <typename T>
 internal void mat_set_row_range(mat<T> m, vec<T> data, size row, size row_offset)
 {
     // There must be enough columns after the offset to accommodate the vector.
-    ASSERT(m.cols >= data.elements + row_offset);
+    //ASSERT(m.cols >= data.elements + row_offset);
 
     switch (m.device)
     {
@@ -219,7 +219,7 @@ internal void mat_set_row_range(mat<T> m, vec<T> data, size row, size row_offset
 template <typename T>
 internal void mat_set_col_range(mat<T> m, vec<T> data, size col, size col_offset)
 {
-    ASSERT(m.rows >= data.elements + col_offset);
+    //ASSERT(m.rows >= data.elements + col_offset);
 
     switch (m.device)
     {
@@ -306,7 +306,7 @@ internal void mat_print(mat<T> m)
 template <typename T>
 internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
 {
-    ASSERT(orig.rows == target.rows);
+    //ASSERT(orig.rows == target.rows);
 
     mat<T> result = {};
     switch (orig.device)
@@ -337,7 +337,7 @@ internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
 template <typename T>
 internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
 {
-    ASSERT(orig.cols == target.cols);
+    //ASSERT(orig.cols == target.cols);
 
     mat<T> result = {};
     switch (orig.device)
@@ -363,9 +363,9 @@ internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
 template <typename T>
 internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place)
 {
-    ASSERT(a.rows == b.rows);
-    ASSERT(a.cols == b.cols);
-    ASSERT(a.device == b.device);
+    //ASSERT(a.rows == b.rows);
+    //ASSERT(a.cols == b.cols);
+    //ASSERT(a.device == b.device);
 
     mat<T> result = in_place ? a : mat_copy(a);
 
@@ -413,7 +413,7 @@ internal mat<T> mat_stretch_add(mat<T> a, mat<T> b)
 	b32 valid_sizes = ((a.rows == b.rows) && (a.cols == b.cols))
 	|| ((a_col_vec || b_col_vec) && (a.rows == b.rows))
 	|| ((a_row_vec || b_row_vec) && (a.cols == b.cols));
-	ASSERT(valid_sizes);
+	//ASSERT(valid_sizes);
 	
     // TODO(lucas): Overwriting here causes a memory leak. Use a temp result instead.
     mat<T> result = {};
@@ -497,8 +497,8 @@ template <typename T>
 internal mat<T> mat_mul(mat<T> a, mat<T> b)
 {
     // For multiplication to be valid, the number of columns in A must equal the number of rows in B
-    ASSERT(a.cols == b.rows);
-    ASSERT(a.device == b.device);
+    //ASSERT(a.cols == b.rows);
+    //ASSERT(a.device == b.device);
 
     mat<T> result = {};
     switch(a.device)
@@ -531,9 +531,9 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
 template <typename T>
 internal mat<T> mat_had(mat<T> a, mat<T> b, b32 in_place)
 {
-    ASSERT(a.rows == b.rows);
-    ASSERT(a.cols == b.cols);
-    ASSERT(a.device == b.device);
+    //ASSERT(a.rows == b.rows);
+    //ASSERT(a.cols == b.cols);
+    //ASSERT(a.device == b.device);
 
     mat<T> result = in_place ? a : mat_copy(a);
     switch (result.device)

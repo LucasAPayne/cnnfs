@@ -6,7 +6,7 @@
 template <typename T>
 internal vec<T> mat_get_row(mat<T> m, size row)
 {
-    ASSERT(row < m.rows);
+    //ASSERT(row < m.rows);
 
     vec<T> result = {};
     result.elements = m.cols;
@@ -19,7 +19,7 @@ internal vec<T> mat_get_row(mat<T> m, size row)
 template <typename T>
 internal vec<T> mat_get_col(mat<T> m, size col)
 {
-    ASSERT(col < m.cols);
+    //ASSERT(col < m.cols);
 
     vec<T> result = {};
     result.elements = m.rows;

@@ -23,7 +23,7 @@ struct vec
 
     inline T& operator[](size i)
     {
-        ASSERT(i < elements);
+        //ASSERT(i < elements);
         return data[i];
     }
 };

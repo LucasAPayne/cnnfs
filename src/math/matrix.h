@@ -30,8 +30,8 @@ struct mat
      */
     inline T& operator()(size row, size col)
     {
-        ASSERT(row < rows);
-        ASSERT(col < cols);
+        //ASSERT(row < rows);
+        //ASSERT(col < cols);
         return data[row*cols + col];
     }
 };

@@ -4,13 +4,6 @@
 
 #define countof(array) (sizeof((array)) / sizeof((array)[0]))
 
-#ifdef CNNFS_DEBUG
-    #define ASSERT(expr) if(!(expr)) {*(int *)0 = 0;}
-#else
-    // Define as cast to void to prevent unused expression warnings.
-    #define ASSERT(expr) (void)(expr)
-#endif
-
 // NOTE(lucas): Define additional keywords for different uses of static for additional clarity
 // internal: for static functions used only in the translation unit where they are defined
 // local_persist: for static variables in functions whose values persist across multiple function calls

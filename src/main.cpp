@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+// TODO(lucas): Put assertions in log.h, and redefine them as taking a message.
+// They should automatically report the location information.
 // TODO(lucas): Log assertions.
 
 // TODO(lucas): Add RNG for GPU.

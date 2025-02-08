@@ -32,7 +32,7 @@ vec<T> vec_zeros(size elements, Device device)
         default: log_invalid_device(device); break;
     }
     
-    ASSERT(result.data);
+    //ASSERT(result.data);
     return result;
 }
 
@@ -114,8 +114,8 @@ template <typename T>
 internal void vec_set_range(vec<T> v, vec<T> data, size offset)
 {
     // Ensure there is enough room in the vector
-    ASSERT(v.elements >= data.elements + offset);
-    ASSERT(v.device == data.device);
+    //ASSERT(v.elements >= data.elements + offset);
+    //ASSERT(v.device == data.device);
 
     switch(v.device)
     {
@@ -173,8 +173,8 @@ internal void vec_print(vec<T> v)
 template <typename T>
 internal vec<T> vec_add(vec<T> a, vec<T> b, b32 in_place)
 {
-    ASSERT(a.elements == b.elements);
-    ASSERT(a.device == b.device);
+    //ASSERT(a.elements == b.elements);
+    //ASSERT(a.device == b.device);
 
     vec<T> result = in_place ? a : vec_copy(a);
 
@@ -249,8 +249,8 @@ internal vec<T> vec_reciprocal(vec<T> v, b32 in_place)
 template <typename T>
 internal vec<T> vec_had(vec<T> a, vec<T> b, b32 in_place)
 {
-    ASSERT(a.elements == b.elements);
-    ASSERT(a.device == b.device);
+    //ASSERT(a.elements == b.elements);
+    //ASSERT(a.device == b.device);
 
     vec<T> result = in_place ? a : vec_copy(a);
 

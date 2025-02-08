@@ -32,3 +32,15 @@ void log_log(LogLevel level, const char* fmt, ...);
 #define LOG_FILE_PATH YELLOW"%s"COLOR_RESET
 #define LOG_FUNC_NAME CYAN"%s"COLOR_RESET
 #define LOG_LINE_NUM BWHITE"%d"COLOR_RESET
+
+// To report the file, line number, and function name where a log occurs, use these macros, e.g.,
+// log_error(LOG_POS "Error number: %d", LOG_POS_ARGS, number);
+#define LOG_POS "[" LOG_FILE_PATH ":" LOG_LINE_NUM "] in " LOG_FUNC_NAME ": "
+#define LOG_POS_ARGS __FILE__, __LINE__, __func__
+
+#ifdef CNNFS_DEBUG
+    #define ASSERT(expr, msg, ...) if(!(expr)) {*(int *)0 = 0; log_error(LOG_POS msg, LOG_POS_ARGS, __VA_ARGS__);}
+#else
+    // Define as cast to void to prevent unused expression warnings.
+    #define ASSERT(expr, msg, ...) (void)(expr); (void)msg
+#endif

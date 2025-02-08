@@ -3,7 +3,7 @@
 
 f32 accuracy_score(vec<u32> y_true, vec<u32> y_pred)
 {
-    ASSERT(y_true.elements == y_pred.elements);
+    //ASSERT(y_true.elements == y_pred.elements, "Mismatch in number of true and predicted elements.\n");
 
     b32 y_true_was_on_gpu = (y_true.device == Device_GPU);
     b32 y_pred_was_on_gpu = (y_pred.device == Device_GPU);
