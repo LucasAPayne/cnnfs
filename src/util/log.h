@@ -19,8 +19,14 @@ typedef enum LogLevel
 
 void log_log(LogLevel level, const char* fmt, ...);
 
-#define log_trace(...) log_log(LOG_TRACE, __VA_ARGS__)
-#define log_debug(...) log_log(LOG_DEBUG, __VA_ARGS__)
+#ifdef CNNFS_DEBUG
+    #define log_trace(...) log_log(LOG_TRACE, __VA_ARGS__)
+    #define log_debug(...) log_log(LOG_DEBUG, __VA_ARGS__)
+#else
+    #define log_trace(...)
+    #define log_debug(...)
+#endif
+
 #define log_info(...)  log_log(LOG_INFO,  __VA_ARGS__)
 #define log_warn(...)  log_log(LOG_WARN,  __VA_ARGS__)
 #define log_error(...) log_log(LOG_ERROR, __VA_ARGS__)
@@ -39,7 +45,8 @@ void log_log(LogLevel level, const char* fmt, ...);
 #define LOG_POS_ARGS __FILE__, __LINE__, __func__
 
 #ifdef CNNFS_DEBUG
-    #define ASSERT(expr, msg, ...) if(!(expr)) {*(int *)0 = 0; log_error(LOG_POS msg, LOG_POS_ARGS, __VA_ARGS__);}
+    #define ASSERT(expr, msg, ...) \
+        if(!(expr)) {log_fatal(LOG_POS msg, LOG_POS_ARGS ##__VA_ARGS__); getchar(); *(int *)0 = 0;}
 #else
     // Define as cast to void to prevent unused expression warnings.
     #define ASSERT(expr, msg, ...) (void)(expr); (void)msg

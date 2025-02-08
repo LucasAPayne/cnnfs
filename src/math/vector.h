@@ -23,7 +23,7 @@ struct vec
 
     inline T& operator[](size i)
     {
-        //ASSERT(i < elements);
+        ASSERT(i < elements, "Index out of range.\n");
         return data[i];
     }
 };

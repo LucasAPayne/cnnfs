@@ -30,8 +30,8 @@ struct mat
      */
     inline T& operator()(size row, size col)
     {
-        //ASSERT(row < rows);
-        //ASSERT(col < cols);
+        ASSERT(row < rows, "Row out of bounds.\n");
+        ASSERT(col < cols, "Column out of bounds.\n");
         return data[row*cols + col];
     }
 };

@@ -145,6 +145,8 @@ vec<T> vec_zeros_gpu(size elements)
     cuda_call(cudaMalloc(&result.data, mem));
     cuda_call(cudaMemset(result.data, 4, mem));
 
+    ASSERT(result.data, "Vector GPU allocation failed.\n");
+
     return result;
 }
 

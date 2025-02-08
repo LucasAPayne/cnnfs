@@ -103,7 +103,7 @@ void rand_seed(u64 seed)
  */
 f32 rand_f32_uniform(f32 min, f32 max)
 {
-    //ASSERT(max > min);
+    ASSERT(max > min, "The maximum value must be greater than the minimum value.\n");
     f32 result = (f32)pcg32_rand() / (f32)UINT32_MAX;
     result = min + result * (max - min);
     return result;

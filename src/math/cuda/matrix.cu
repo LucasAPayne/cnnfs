@@ -6,7 +6,7 @@
 template <typename T>
 internal vec<T> mat_get_row(mat<T> m, size row)
 {
-    //ASSERT(row < m.rows);
+    ASSERT(row < m.rows, "Row out of range.\n");
 
     vec<T> result = {};
     result.elements = m.cols;
@@ -19,7 +19,7 @@ internal vec<T> mat_get_row(mat<T> m, size row)
 template <typename T>
 internal vec<T> mat_get_col(mat<T> m, size col)
 {
-    //ASSERT(col < m.cols);
+    ASSERT(col < m.cols, "Column out of range.\n");
 
     vec<T> result = {};
     result.elements = m.rows;
@@ -214,6 +214,8 @@ mat<T> mat_zeros_gpu(size rows, size cols)
     size mem = rows*cols*sizeof(T);
     cuda_call(cudaMalloc(&result.data, mem));
     cuda_call(cudaMemset(result.data, 0, mem));
+
+    ASSERT(result.data, "GPU matrix allocation failed.\n");
 
     return result;
 }

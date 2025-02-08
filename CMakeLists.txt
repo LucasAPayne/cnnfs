@@ -72,6 +72,8 @@ if(MSVC)
 
     set(CUDA_LINKER_FLAGS_COMMON -Xcompiler=/wd4100)
 
+    target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:CNNFS_DEBUG>)
+
     target_compile_options(${PROJECT_NAME} PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:${COMPILER_FLAGS_COMMON}>
         $<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:Debug>:${COMPILER_FLAGS_DEBUG}>>

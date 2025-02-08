@@ -11,7 +11,7 @@ void log_log(LogLevel level, const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    fprintf(stderr, "[%s%s%s]: ", level_colors[level], level_strs[level], COLOR_RESET);
+    fprintf(stderr, "%s[%s]:%s ", level_colors[level], level_strs[level], COLOR_RESET);
     vfprintf(stderr, fmt, args);
     va_end(args);
 }
