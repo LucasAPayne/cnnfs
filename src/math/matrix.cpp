@@ -88,7 +88,7 @@ internal mat<T> mat_copy(mat<T> m)
     return result;
 }
 
-mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols)
+internal mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols)
 {
     // TODO(lucas): Use set row/col range?
     mat<f32> result = mat_zeros<f32>(rows, cols);
@@ -102,7 +102,7 @@ mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols)
     return result;
 }
 
-mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, size rows, size cols)
+internal mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, size rows, size cols)
 {
     mat<f32> result = mat_zeros<f32>(rows, cols);
 
@@ -115,7 +115,7 @@ mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, size rows, size cols)
     return result;
 }
 
-mat<f32> mat_rand_gauss_standard(size rows, size cols)
+internal mat<f32> mat_rand_gauss_standard(size rows, size cols)
 {
     mat<f32> result = mat_zeros<f32>(rows, cols);
 

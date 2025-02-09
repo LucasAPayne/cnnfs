@@ -48,9 +48,10 @@ endforeach(flag_var)
 
 if(MSVC)
     # C4100 and C4189 are about unused parameters/variables and are not particularly useful.
+    # C4505 is about unreferenced functions with internal linkage, not useful in unity/STU builds
     # /we5262: Treat implicit fallthrough as an error.
     # /Oi: Generate intrinsic functions.
-    set(COMPILER_FLAGS_COMMON /Oi /WX /W4 /wd4100 /wd4189 /wd4201 /wd4005 /we5262 /D_CRT_SECURE_NO_WARNINGS)
+    set(COMPILER_FLAGS_COMMON /Oi /WX /W4 /wd4100 /wd4189 /wd4201 /wd4005 /wd4505 /we5262 /D_CRT_SECURE_NO_WARNINGS)
 
     # In debug mode, enable complete debug information (/Zi) and disable optimization (/Od)
     # Specify the DLL multithreaded debug version of CRT (MDd) and perform all available run-time error checks (RTC1)

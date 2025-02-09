@@ -80,32 +80,64 @@ internal vec<T> vec_copy(vec<T> v)
     return result;
 }
 
-vec<f32> vec_rand_uniform(f32 min, f32 max, size n)
+internal vec<f32> vec_rand_uniform(f32 min, f32 max, size n, Device device)
 {
-    vec<f32> result = vec_zeros<f32>(n);
+    vec<f32> result = {};
+    switch (device)
+    {
+        case Device_CPU:
+        {
+            result = vec_zeros<f32>(n);
+            for (size i = 0; i < n; ++i)
+                result[i] = rand_f32_uniform(min, max);
+        } break;
 
-    for (size i = 0; i < n; ++i)
-        result[i] = rand_f32_uniform(min, max);
+        case Device_GPU: result = vec_rand_uniform_gpu(min, max, n); break;
+
+        default: break;
+    }
+        
+    return result;
+}
+
+internal vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, size n, Device device)
+{
+    vec<f32> result = {};
+    switch (device)
+    {
+        case Device_CPU:
+        {
+            result = vec_zeros<f32>(n);
+
+            for (size i = 0; i < n; ++i)
+                result[i] = rand_f32_gauss(mean, std_dev);
+        } break;
+
+        case Device_GPU: result = vec_rand_gauss_gpu(mean, std_dev, n); break;
+
+        default: break;
+    }
 
     return result;
 }
 
-vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, size n)
+internal vec<f32> vec_rand_gauss_standard(size n, Device device)
 {
-    vec<f32> result = vec_zeros<f32>(n);
+    vec<f32> result = {};
 
-    for (size i = 0; i < n; ++i)
-        result[i] = rand_f32_gauss(mean, std_dev);
+    switch (device)
+    {
+        case Device_CPU:
+        {
+            result = vec_zeros<f32>(n);
+            for (size i = 0; i < n; ++i)
+                result[i] = rand_f32_gauss_standard();
+        } break;
 
-    return result;
-}
+        case Device_GPU: result = vec_rand_gauss_standard_gpu(n); break;
 
-vec<f32> vec_rand_gauss_standard(size n)
-{
-    vec<f32> result = vec_zeros<f32>(n);
-
-    for (size i = 0; i < n; ++i)
-        result[i] = rand_f32_gauss_standard();
+        default: break;
+    }
 
     return result;
 }

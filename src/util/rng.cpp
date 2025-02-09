@@ -42,15 +42,22 @@
  * Only the global RNG is used since it is treated as internal state,
  * and types and functions are renamed to match this project's style.
  */
-struct pcg32_rng {         // Internals are *Private*.
-    u64 state;             // RNG state.  All values are possible.
-    u64 inc;               // Controls which RNG sequence (stream) is
-                           // selected. Must *always* be odd.
+struct PCG32RNG
+{              // Internals are *Private*.
+    u64 state; // RNG state.  All values are possible.
+    u64 inc;   // Controls which RNG sequence (stream) is
+               // selected. Must *always* be odd.
+};
+
+struct GPURNG
+{
+    u64 seed;
 };
 
 // Make RNG global here so RNG type can be opaque to user
 #define PCG32_INITIALIZER {0x853c49e6748fea9bULL, 0xda3e39cb94b95bdbULL}
-global pcg32_rng pcg32_global = PCG32_INITIALIZER;
+global PCG32RNG pcg32_global = PCG32_INITIALIZER;
+global GPURNG gpu_rng_global = {};
 
 // TODO(lucas): In the last part of the computation, rot is a u32, so taking the negative does
 // not make sense mathematically.
@@ -91,17 +98,18 @@ internal void pcg32_set_seed(u64 init_state, u64 init_seq)
 /**
  * Set seed of RNG
  */
-void rand_seed(u64 seed)
+internal void rand_seed(u64 seed)
 {
     // NOTE(lucas): For now, only the global PCG32 RNG is being used.
     // Streams are not currently being used, so set to 0 for now.
     pcg32_set_seed(seed, 0);
+    gpu_rng_global.seed = seed;
 }
 
 /**
  * Generate a random f32 in the range [min, max] from the uniform distribution
  */
-f32 rand_f32_uniform(f32 min, f32 max)
+internal f32 rand_f32_uniform(f32 min, f32 max)
 {
     ASSERT(max > min, "The maximum value must be greater than the minimum value.\n");
     f32 result = (f32)pcg32_rand() / (f32)UINT32_MAX;
@@ -109,10 +117,11 @@ f32 rand_f32_uniform(f32 min, f32 max)
     return result;
 }
 
+// TODO(lucas): Use both results from the Box-Muller method for more efficient computation.
 /**
  * Generate a random f32 from the Guassian (normal) distribution with a given mean and standard deviation.
  */
-f32 rand_f32_gauss(f32 mean, f32 std_dev)
+internal f32 rand_f32_gauss(f32 mean, f32 std_dev)
 {
     /* NOTE(lucas): Currently, the Marsaglia polar method variation of the Box-Muller method is being used.
      * This algorithm works by randomly picking points (x,y) in the square -1 < x < 1, -1 < y < 1
@@ -156,7 +165,7 @@ f32 rand_f32_gauss(f32 mean, f32 std_dev)
     return result;
 }
 
-f32 rand_f32_gauss_standard(void)
+internal f32 rand_f32_gauss_standard()
 {
     f32 result = rand_f32_gauss(0.0f, 1.0f);
     return result;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "device.h"
-#include "types.h"
 #include "vector.h"
+#include "util/types.h"
 
 template <typename T>
 void vec_to(vec<T>* v, Device device);
@@ -12,6 +12,10 @@ vec<T> vec_zeros_gpu(size elements);
 
 template <typename T>
 vec<T> vec_full_gpu(size elements, T fill_value);
+
+vec<f32> vec_rand_uniform_gpu(f32 min, f32 max, size n);
+vec<f32> vec_rand_gauss_gpu(f32 mean, f32 std_dev, size n);
+vec<f32> vec_rand_gauss_standard_gpu(size n);
 
 template <typename T>
 vec<T> vec_copy_gpu(vec<T> v);

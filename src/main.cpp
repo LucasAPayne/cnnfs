@@ -63,6 +63,7 @@ int main(void)
     }
     time_block_end();
 
+    // TODO(lucas): This accuracy is somtimes 0 for some reason, but it only seems to happen in release mode.
     vec_to(&labels, Device_CPU);
     time_block_begin("Accuracy");
     f32 acc = accuracy_score(labels, pred);

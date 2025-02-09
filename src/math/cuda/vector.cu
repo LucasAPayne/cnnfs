@@ -1,5 +1,8 @@
 #include "cuda_base.h"
+#include "rng.h"
 #include "vector_cuda.h"
+
+#include <curand_kernel.h>
 
 template <typename T>
 __global__ internal void vec_full_kernel(vec<T> v, T fill_value)
@@ -8,6 +11,53 @@ __global__ internal void vec_full_kernel(vec<T> v, T fill_value)
     if (i >= v.elements) return;
     
     v.data[i] = fill_value;
+}
+
+// NOTE(lucas): The documentation suggests splitting up state initialization and random number generation.
+// It also suggests using a different seed for each thread for increased speed.
+// https://docs.nvidia.com/cuda/curand/device-api-overview.html#performance-notes
+__global__ internal void init_curand_states(curandState* states, size n, u64 seed)
+{
+    int i = threadIdx.x + blockIdx.x*blockDim.x;
+    if (i >= n) return;
+
+    curand_init(seed+i, 0, 0, &states[i]);
+}
+
+__global__ internal void vec_rand_uniform_kernel(vec<f32> v, f32 min, f32 max, curandState* states)
+{
+    int i = threadIdx.x + blockIdx.x*blockDim.x;
+    if (i >= v.elements) return;
+
+    curandState local_state = states[i];
+    f32 val = curand_uniform(&local_state);
+    v.data[i] = min + val * (max - min);
+    states[i] = local_state;
+}
+
+// TODO(lucas): See about using curand_normal2(), which returns both results from the Box-Muller method
+// for more efficient computation.
+__global__ internal void vec_rand_gauss_kernel(vec<f32> v, f32 mean, f32 std_dev, curandState* states)
+{
+    int i = threadIdx.x + blockIdx.x*blockDim.x;
+    if (i >= v.elements) return;
+
+    curandState local_state = states[i];
+    // NOTE(lucas): curand_normal uses a standard Gaussian distribution,
+    // so it needs to be shifted to the desired mean and standard deviation.
+    f32 val = curand_normal(&local_state);
+    v.data[i] = val*std_dev + mean;
+    states[i] = local_state;
+}
+
+__global__ internal void vec_rand_gauss_standard_kernel(vec<f32> v, curandState* states)
+{
+    int i = threadIdx.x + blockIdx.x*blockDim.x;
+    if (i >= v.elements) return;
+
+    curandState local_state = states[i];
+    v.data[i] = curand_normal(&local_state);
+    states[i] = local_state;
 }
 
 template <typename T>
@@ -143,7 +193,7 @@ vec<T> vec_zeros_gpu(size elements)
 
     size mem = elements*sizeof(T);
     cuda_call(cudaMalloc(&result.data, mem));
-    cuda_call(cudaMemset(result.data, 4, mem));
+    cuda_call(cudaMemset(result.data, 0, mem));
 
     ASSERT(result.data, "Vector GPU allocation failed.\n");
 
@@ -157,6 +207,54 @@ vec<T> vec_full_gpu(size elements, T fill_value)
     vec<T> result = vec_zeros_gpu<T>(elements);
     vec_full_kernel<<<layout.grid_dim, layout.block_dim>>>(result, fill_value);
     sync_kernel();
+
+    return result;
+}
+
+vec<f32> vec_rand_uniform_gpu(f32 min, f32 max, size n)
+{
+    vec<f32> result = vec_zeros_gpu<f32>(n);
+
+    ThreadLayout layout = calc_thread_dim(n);
+    curandState* states;
+    cuda_call(cudaMalloc(&states, n*sizeof(curandState)));
+
+    init_curand_states<<<layout.grid_dim, layout.block_dim>>>(states, n, gpu_rng_global.seed);
+    vec_rand_uniform_kernel<<<layout.grid_dim, layout.block_dim>>>(result, min, max, states);
+
+    cuda_call(cudaFree(states));
+
+    return result;
+}
+
+vec<f32> vec_rand_gauss_gpu(f32 mean, f32 std_dev, size n)
+{
+    vec<f32> result = vec_zeros_gpu<f32>(n);
+
+    ThreadLayout layout = calc_thread_dim(n);
+    curandState* states;
+    cuda_call(cudaMalloc(&states, n*sizeof(curandState)));
+
+    init_curand_states<<<layout.grid_dim, layout.block_dim>>>(states, n, gpu_rng_global.seed);
+    vec_rand_gauss_kernel<<<layout.grid_dim, layout.block_dim>>>(result, mean, std_dev, states);
+
+    cuda_call(cudaFree(states));
+
+    return result;
+}
+
+vec<f32> vec_rand_gauss_standard_gpu(size n)
+{
+    vec<f32> result = vec_zeros_gpu<f32>(n);
+
+    ThreadLayout layout = calc_thread_dim(n);
+    curandState* states;
+    cuda_call(cudaMalloc(&states, n*sizeof(curandState)));
+
+    init_curand_states<<<layout.grid_dim, layout.block_dim>>>(states, n, gpu_rng_global.seed);
+    vec_rand_gauss_standard_kernel<<<layout.grid_dim, layout.block_dim>>>(result, states);
+
+    cuda_call(cudaFree(states));
 
     return result;
 }
