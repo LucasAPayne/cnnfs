@@ -117,7 +117,6 @@ internal f32 rand_f32_uniform(f32 min, f32 max)
     return result;
 }
 
-// TODO(lucas): Use both results from the Box-Muller method for more efficient computation.
 /**
  * Generate a random f32 from the Guassian (normal) distribution with a given mean and standard deviation.
  */
