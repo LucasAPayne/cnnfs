@@ -123,7 +123,7 @@ __global__ internal void vec_sum_kernel(vec<T> v, T* out)
     if (i < v.elements)
         shared_mem[threadIdx.x] = v.data[i];
     else
-        shared_mem[threadIdx.x] = 0;
+        shared_mem[threadIdx.x] = (T)0;
 
     __syncthreads();
 

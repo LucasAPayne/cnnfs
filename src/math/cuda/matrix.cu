@@ -117,17 +117,6 @@ __global__ internal void mat_add_kernel(mat<T> a, mat<T> b)
 }
 
 template <typename T>
-__global__ internal void mat_add_vec_cols_kernel(mat<T> m, vec<T> v)
-{
-    int row = threadIdx.y + blockIdx.y*blockDim.y;
-    int col = threadIdx.x + blockIdx.x*blockDim.x;
-    if (row >= m.rows || col >= m.cols) return;
-
-    size i = m.cols*row + col;
-    m.data[i] += v.data[row];
-}
-
-template <typename T>
 __global__ internal void mat_add_vec_rows_kernel(mat<T> m, vec<T> v)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
@@ -139,6 +128,39 @@ __global__ internal void mat_add_vec_rows_kernel(mat<T> m, vec<T> v)
 }
 
 template <typename T>
+__global__ internal void mat_add_vec_cols_kernel(mat<T> m, vec<T> v)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= m.rows || col >= m.cols) return;
+
+    size i = m.cols*row + col;
+    m.data[i] += v.data[row];
+}
+
+template <typename T>
+__global__ internal void mat_scale_rows_kernel(mat<T> m, vec<T> scale)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= m.rows || col >= m.cols) return;
+
+    size i = m.cols*row + col;
+    m.data[i] *= scale.data[col];
+}
+
+template <typename T>
+__global__ internal void mat_scale_cols_kernel(mat<T> m, vec<T> scale)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= m.rows || col >= m.cols) return;
+
+    size i = m.cols*row + col;
+    m.data[i] *= scale.data[row];
+}
+
+template <typename T>
 __global__ internal void mat_scale_kernel(mat<T> m, T value)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
@@ -147,6 +169,56 @@ __global__ internal void mat_scale_kernel(mat<T> m, T value)
     
     size i = m.cols*row + col;
     m.data[i] *= value;
+}
+
+template <typename T>
+__global__ internal void mat_sum_rows_kernel(mat<T> m, vec<T> result)
+{
+    __shared__ T shared_mem[256];
+    int row = blockIdx.y;
+    int col = threadIdx.x + blockIdx.x * blockDim.x;
+    if (row >= m.rows || col >= m.cols) return;
+
+    size i = m.cols*row + col;
+    int tid = threadIdx.x;
+    T sum = 0;
+    shared_mem[tid] = m.data[i];
+    __syncthreads();
+
+    for (int s = blockDim.x / 2; s > 0; s >>= 1)
+    {
+        if (threadIdx.x < s)
+            shared_mem[tid] += shared_mem[tid + s];
+        __syncthreads();
+    }
+
+    if (threadIdx.x == 0)
+        result.data[row] = shared_mem[0];
+}
+
+template <typename T>
+__global__ internal void mat_sum_cols_kernel(mat<T> m, vec<T> result)
+{
+    __shared__ T shared_mem[256];
+    int row = blockIdx.y;
+    int col = threadIdx.x + blockIdx.x * blockDim.x;
+    if (row >= m.rows || col >= m.cols) return;
+
+    size i = m.cols*row + col;
+    int tid = threadIdx.x;
+    T sum = 0;
+    shared_mem[tid] = m.data[i];
+    __syncthreads();
+
+    for (int s = blockDim.x / 2; s > 0; s >>= 1)
+    {
+        if (threadIdx.x < s)
+            shared_mem[tid] += shared_mem[tid + s];
+        __syncthreads();
+    }
+
+    if (threadIdx.x == 0)
+        result.data[col] = shared_mem[0];
 }
 
 template <typename T>
@@ -355,6 +427,7 @@ void mat_scale_gpu(mat<T> m, T value)
 template <typename T>
 void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
 {
+    ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     switch (axis)
     {
         case Axis_Rows:
@@ -362,13 +435,7 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
             ASSERT(scale.elements == m.cols,
                 "For a row-wise scale, the vector must have the same number of elements as the matrix has columns.");
 
-            for (size i = 0; i < m.rows; ++i)
-            {
-                vec<T> row = mat_get_row(m, i);
-                T c;
-                cuda_call(cudaMemcpy(&c, scale.data + i, sizeof(T), cudaMemcpyDeviceToHost));
-                vec_scale_gpu(row, c);
-            }
+            mat_scale_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(m, scale);
         } break;
 
         case Axis_Cols:
@@ -376,13 +443,7 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
             ASSERT(scale.elements == m.cols,
                 "For a column-wise scale, the vector must have the same number of elements as the matrix has rows.");
 
-            for (size i = 0; i < m.cols; ++i)
-            {
-                vec<T> col = mat_get_col(m, i);
-                T c;
-                cuda_call(cudaMemcpy(&c, scale.data + i, sizeof(T), cudaMemcpyDeviceToHost));
-                vec_scale_gpu(col, c);
-            }
+            mat_scale_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, scale);
         } break;
 
         default: log_invalid_axis(axis); break;
@@ -411,28 +472,20 @@ template <typename T>
 vec<T> mat_sum_gpu(mat<T> m, Axis axis)
 {
     vec<T> result = {};
+    ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
+    size shared_mem_size = layout.block_dim.x * sizeof(T);
     switch (axis)
     {
         case Axis_Rows:
         {
             result = vec_zeros_gpu<T>(m.rows);
-            for (size i = 0; i < m.rows; ++i)
-            {
-                vec<T> row = mat_get_row(m, i);
-                T sum = vec_sum_gpu(row);
-                cuda_call(cudaMemcpy(result.data + i, &sum, sizeof(T), cudaMemcpyHostToDevice));
-            }
+            mat_sum_rows_kernel<<<layout.grid_dim, layout.block_dim, shared_mem_size>>>(m, result);
         } break;
 
         case Axis_Cols:
         {
             result = vec_zeros_gpu<T>(m.cols);
-            for (size i = 0; i < m.cols; ++i)
-            {
-                vec<T> col = mat_get_col(m, i);
-                T sum = vec_sum_gpu(col);
-                cuda_call(cudaMemcpy(result.data + i, &sum, sizeof(T), cudaMemcpyHostToDevice));
-            }
+            mat_sum_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, result);
         } break;
 
         default: log_invalid_axis(axis); break;

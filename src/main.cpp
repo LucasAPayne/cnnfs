@@ -2,25 +2,24 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Check each function that takes in axis and make sure it is correct.
-// Axis_Rows means
-// TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
-// TODO(lucas): Speed up softmax (mat_sum and mat_scale take most of the time). Use large dataset size to test.
-
 // TODO(lucas): Make sure every appropriate math function returns a value.
 
+// TODO(lucas): Use more optimized reductions.
+// https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf slide 35
+// TODO(lucas): Is it possible to make a general reduction for matrices that works across rows or columns?
 // TODO(lucas): Use shared memory in CUDA code where appropraite (e.g., matrix ops).
 
 // TODO(lucas): Switch to growable arenas and get rid of individual vec/matrix allocations.
 // TODO(lucas): Use scratch space for each pass over the neural network,
 // or pre-allocate the memory for each output and have an option for multiplication to take in allocated memory.
+// TODO(lucas): In softmax activation, sum vector can be popped (freed) after scaling input
 
 int main(void)
 {
     profiler_begin();
     rand_seed(123);
 
-    Device device = Device_CPU;
+    Device device = Device_GPU;
 
     time_block_begin("Dataset Creation");
     mat<f32> data;
@@ -71,7 +70,8 @@ int main(void)
 
     profiler_end();
 
-    mat_print(out.output);
+    if (out.output.rows <= 300)
+        mat_print(out.output);
     printf("\nAccuracy: %.2f%%\n\n", acc*100.0f);
     profiler_print();
 
