@@ -2,16 +2,18 @@
 
 #include <stdio.h>
 
+// TODO(lucas): Check each function that takes in axis and make sure it is correct.
+// Axis_Rows means
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
 // TODO(lucas): Speed up softmax (mat_sum and mat_scale take most of the time). Use large dataset size to test.
+
+// TODO(lucas): Make sure every appropriate math function returns a value.
+
 // TODO(lucas): Use shared memory in CUDA code where appropraite (e.g., matrix ops).
 
 // TODO(lucas): Switch to growable arenas and get rid of individual vec/matrix allocations.
 // TODO(lucas): Use scratch space for each pass over the neural network,
 // or pre-allocate the memory for each output and have an option for multiplication to take in allocated memory.
-
-// TODO(lucas): Make mat_sretch_* in-place?
-// or replace stretching with adding a vector along each axis.
 
 int main(void)
 {
@@ -62,7 +64,6 @@ int main(void)
     }
     time_block_end();
 
-    // TODO(lucas): This accuracy is somtimes 0 for some reason, but it only seems to happen in release mode.
     vec_to(&labels, Device_CPU);
     time_block_begin("Accuracy");
     f32 acc = accuracy_score(labels, pred);
@@ -71,9 +72,7 @@ int main(void)
     profiler_end();
 
     mat_print(out.output);
-    printf("\nAccuracy: %.2f%%\n", acc*100.0f);
-
-    printf("\n");
+    printf("\nAccuracy: %.2f%%\n\n", acc*100.0f);
     profiler_print();
 
     getchar();

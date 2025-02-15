@@ -144,16 +144,11 @@ template <typename T>
 internal void mat_print(mat<T> m);
 
 template <typename T>
-internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target);
-
-template <typename T>
-internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target);
-
-template <typename T>
 internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place=true);
 
+// Add a vector to each row or to each column of a matrix
 template <typename T>
-internal mat<T> mat_stretch_add(mat<T> a, mat<T> b);
+internal mat<T> mat_add_vec(mat<T> m, vec<T> v, Axis axis=Axis_Rows, b32 in_place=true);
 
 template <typename T>
 internal mat<T> mat_scale(mat<T> m, T scale, b32 in_place=true);

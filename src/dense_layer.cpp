@@ -8,7 +8,7 @@ DenseLayer dense_layer_init(size inputs, size neurons, ActivationType activation
     layer.weights = mat_rand_gauss_standard(inputs, neurons, device);
     mat_to(&layer.weights, device);
     layer.weights *= 0.01f;
-    layer.biases = mat_zeros<f32>(1, neurons, device);
+    layer.biases = vec_zeros<f32>(neurons, device);
     layer.activation = activation;
 
     return layer;
@@ -17,8 +17,6 @@ DenseLayer dense_layer_init(size inputs, size neurons, ActivationType activation
 void dense_layer_forward(DenseLayer* layer, mat<f32> input)
 {
     layer->output = input*layer->weights;
-    mat<f32> temp = mat_stretch_add(layer->output, layer->biases);
-    mat_free_data(layer->output);
-    layer->output = temp;
+    mat_add_vec(layer->output, layer->biases);
     activation_forward(layer->output, layer->activation);
 }

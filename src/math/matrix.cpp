@@ -21,7 +21,7 @@ internal mat<T> mat_zeros(size rows, size cols, Device device)
 {
     mat<T> result = {};
 
-    switch(device)
+    switch (device)
     {
         case Device_CPU:
         {
@@ -55,7 +55,7 @@ internal mat<T> mat_full(size rows, size cols, T fill_value, Device device)
             }
         } break;
 
-        case Device_GPU: result = mat_full_gpu<T>(rows, cols, fill_value);
+        case Device_GPU: result = mat_full_gpu<T>(rows, cols, fill_value); break;
 
         default: log_invalid_device(device); break;
     }
@@ -116,7 +116,7 @@ internal mat<f32> mat_rand_gauss(size rows, size cols, f32 mean, f32 std_dev, De
 {
     mat<f32> result = {};
     
-    switch(device)
+    switch (device)
     {
         case Device_CPU:
         {
@@ -141,7 +141,7 @@ internal mat<f32> mat_rand_gauss_standard(size rows, size cols, Device device)
 {
     mat<f32> result = {};
     
-    switch(device)
+    switch (device)
     {
         case Device_CPU:
         {
@@ -330,68 +330,6 @@ internal void mat_print(mat<T> m)
     mat_to(&m, Device_GPU);
 }
 
-/* TODO(lucas): Overload this function to take a matrix or vector,
- * and assert that it must be a column vector with the correct number of elements.
- */
-// Stretch a column vector to be a matrix with the same shape as target
-// by copying the original column a number of times.
-template <typename T>
-internal mat<T> mat_stretch_cols(mat<T> orig, mat<T> target)
-{
-    ASSERT(orig.rows == target.rows, "The original and target matrices must have the same number of rows.\n");
-
-    mat<T> result = {};
-    switch (orig.device)
-    {
-        case Device_CPU:
-        {
-            result = mat_zeros<T>(target.rows, target.cols);
-            for (size i = 0; i < target.cols; ++i)
-            {
-                for (size j = 0; j < target.cols; ++j)
-                    result(i, j) = orig(i, 0);
-            }
-        } break;
-
-        case Device_GPU: result = mat_stretch_cols_gpu(orig, target); break;
-
-        default: log_invalid_device(orig.device); break;
-    }
-
-    return result;
-}
-
-/* TODO(lucas): Overload this function to take a matrix or vector,
- * and assert that it must be a row vector with the correct number of elements.
- */
-// Stretch a row vector to be a matrix with the same shape as target
-// by copying the original row a number of times.
-template <typename T>
-internal mat<T> mat_stretch_rows(mat<T> orig, mat<T> target)
-{
-    ASSERT(orig.cols == target.cols, "The original and target matrices must have the same number of columns.\n");
-
-    mat<T> result = {};
-    switch (orig.device)
-    {
-        case Device_CPU:
-        {
-            result = mat_zeros<T>(target.rows, target.cols);
-            for (size i = 0; i < target.rows; ++i)
-            {
-                for (size j = 0; j < target.cols; ++j)
-                    result(i, j) = orig(0, j);
-            }
-        } break;
-
-        case Device_GPU: result = mat_stretch_rows_gpu(orig, target); break;
-
-        default: log_invalid_device(orig.device); break;
-    }
-
-    return result;
-}
-
 template <typename T>
 internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place)
 {
@@ -421,6 +359,55 @@ internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place)
 }
 
 template <typename T>
+internal void mat_add_vec_cpu(mat<T> m, vec<T> v, Axis axis)
+{
+    switch (axis)
+    {
+        case Axis_Rows:
+        {
+            ASSERT(v.elements == m.cols,
+                   "For a row-wise add, the vector must have the same number of elements as the matrix has columns.");
+
+            for (size row = 0; row < m.rows; ++row)
+            {
+                for (size col = 0; col < m.cols; ++col)
+                    m(row, col) += v[col];
+            }
+        } break;
+
+        case Axis_Cols:
+        {
+            ASSERT(v.elements == m.rows,
+                   "For a column-wise add, the vector must have the same number of elements as the matrix has rows.");
+            
+            for (size row = 0; row < m.rows; ++row)
+            {
+                for (size col = 0; col < m.cols; ++col)
+                    m(row, col) += v[row];
+            }
+        } break;
+
+        default: log_invalid_axis(axis); break;
+    }
+}
+
+template <typename T>
+internal mat<T> mat_add_vec(mat<T> m, vec<T> v, Axis axis, b32 in_place)
+{
+    ASSERT(m.device == v.device, "The matrix and vector must be on the same device.\n");
+
+    mat<T> result = in_place ? m : mat_copy(m);
+    switch (m.device)
+    {
+        case Device_CPU: mat_add_vec_cpu(m, v, axis); break;
+        case Device_GPU: mat_add_vec_gpu(m, v, axis); break;
+        default: log_invalid_device(result.device); break;
+    }
+
+    return result;
+}
+
+template <typename T>
 internal void mat_free_data(mat<T> a)
 {
     switch (a.device)
@@ -432,45 +419,10 @@ internal void mat_free_data(mat<T> a)
 }
 
 template <typename T>
-internal mat<T> mat_stretch_add(mat<T> a, mat<T> b)
-{
-    /* NOTE(lucas): Matrices must be the same size in both dimensions,
-     * or must be the same size in one dimension while one matrix is a row/column vector.
-     * In the latter case, add the row/column vector across the matrix
-     */
-    b32 a_col_vec = a.cols == 1;
-	b32 a_row_vec = a.rows == 1;
-	b32 b_col_vec = b.cols == 1;
-	b32 b_row_vec = b.rows == 1;
-    // TODO(lucas): Break these into multiple conditions?
-	b32 valid_sizes = ((a.rows == b.rows) && (a.cols == b.cols))
-	|| ((a_col_vec || b_col_vec) && (a.rows == b.rows))
-	|| ((a_row_vec || b_row_vec) && (a.cols == b.cols));
-	ASSERT(valid_sizes, "The matrices must either be the same size in both dimensions, or they must be the same size in"
-                        "one dimension, while one matrix is a row or column vector.\n");
-	
-    // TODO(lucas): Overwriting here causes a memory leak. Use a temp result instead.
-    mat<T> result = {};
-	if ((a.rows != b.rows) || (a.cols != b.cols))
-	{
-		if (b_row_vec)
-			result = mat_add(mat_stretch_rows(b, a), a);
-		else if (b_col_vec)
-			result = mat_add(mat_stretch_cols(b, a), a);
-		else if (a_row_vec)
-			result = mat_add(mat_stretch_cols(a, b), a);
-		else if (a_col_vec)
-			result = mat_add(mat_stretch_cols(a, b), a);
-	}
-
-    return result;
-}
-
-template <typename T>
 internal mat<T> mat_scale(mat<T> m, T scale, b32 in_place)
 {
     mat<T> result = in_place ? m : mat_copy(m);
-    switch(result.device)
+    switch (result.device)
     {
         case Device_CPU:
         {
@@ -496,15 +448,9 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
     {
         case Axis_Rows:
         {
-            for (size row = 0; row < m.rows; ++row)
-            {
-                for (size col = 0; col < m.cols; ++col)
-                    m(row, col) *= scale[row];
-            }
-        } break;
+            ASSERT(scale.elements == m.cols,
+                "For a row-wise scale, the vector must have the same number of elements as the matrix has columns.");
 
-        case Axis_Cols:
-        {
             for (size row = 0; row < m.rows; ++row)
             {
                 for (size col = 0; col < m.cols; ++col)
@@ -512,13 +458,27 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
             }
         } break;
 
-        default: break;
+        case Axis_Cols:
+        {
+            ASSERT(scale.elements == m.cols,
+                "For a column-wise scale, the vector must have the same number of elements as the matrix has rows.");
+
+            for (size row = 0; row < m.rows; ++row)
+            {
+                for (size col = 0; col < m.cols; ++col)
+                    m(row, col) *= scale[row];
+            }
+        } break;
+
+        default: log_invalid_axis(axis); break;
     }
 }
 
 template <typename T>
 internal void mat_scale(mat<T> m, vec<T> scale, Axis axis)
 {
+    ASSERT(m.device == scale.device, "The matrix and vector must be on the same device.\n");
+
     switch (m.device)
     {
         case Device_CPU: mat_scale_cpu(m, scale, axis); break;
@@ -534,7 +494,7 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
     ASSERT(a.device == b.device, "The matrices must be on the same device.\n");
 
     mat<T> result = {};
-    switch(a.device)
+    switch (a.device)
     {
         case Device_CPU:
         {
@@ -614,7 +574,7 @@ internal vec<T> mat_sum_cpu(mat<T> m, Axis axis)
             }
         } break;
 
-        default: log_invalid_device(result.device); break;
+        default: log_invalid_axis(axis); break;
     }
 
     return result;

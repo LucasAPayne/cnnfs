@@ -36,13 +36,10 @@ template <typename T>
 void mat_set_col_range_gpu(mat<T> m, vec<T> data, size col, size col_offset);
 
 template <typename T>
-mat<T> mat_stretch_cols_gpu(mat<T> orig, mat<T> target);
-
-template <typename T>
-mat<T> mat_stretch_rows_gpu(mat<T> orig, mat<T> target);
-
-template <typename T>
 void mat_add_gpu(mat<T> a, mat<T> b);
+
+template <typename T>
+void mat_add_vec_gpu(mat<T> m, vec<T> v, Axis axis);
 
 template <typename T>
 void mat_scale_gpu(mat<T> m, T scale);

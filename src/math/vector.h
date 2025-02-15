@@ -12,6 +12,10 @@
         log_error("[" LOG_FILE_PATH ":" LOG_LINE_NUM "] in " LOG_FUNC_NAME ": Invalid device: %d. " \
         "Device must be Device_CPU (0) or Device_GPU (1).\n", __FILE__, __LINE__, __func__, device)
 
+#define log_invalid_axis(axis) \
+        log_error("[" LOG_FILE_PATH ":" LOG_LINE_NUM "] in " LOG_FUNC_NAME ": Invalid axis: %d. " \
+        "Axis must be Axis_Rows (0) or Axis_Cols (1).\n", __FILE__, __LINE__, __func__, axis)
+
 template <typename T>
 struct vec
 {

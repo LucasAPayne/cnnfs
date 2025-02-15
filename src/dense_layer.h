@@ -8,7 +8,7 @@
 struct DenseLayer
 {
     mat<f32> weights;
-    mat<f32> biases;
+    vec<f32> biases;
     mat<f32> output;
 
     ActivationType activation;

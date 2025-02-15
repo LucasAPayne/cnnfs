@@ -148,7 +148,7 @@ internal void vec_set_range(vec<T> v, vec<T> data, size offset)
     ASSERT(v.elements >= data.elements + offset, "Not enough elements in vector after offset to accommodate the new data.\n");
     ASSERT(v.device == data.device, "The vectors must be on the same device.\n");
 
-    switch(v.device)
+    switch (v.device)
     {
         case Device_CPU:
         {

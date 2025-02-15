@@ -106,26 +106,6 @@ __global__ internal void mat_set_col_range_kernel(mat<T> m, vec<T> v, size col, 
 }
 
 template <typename T>
-__global__ internal void mat_stretch_cols_kernel(mat<T> orig, mat<T> target, mat<T> result)
-{
-    int row = threadIdx.y + blockIdx.y*blockDim.y;
-    int col = threadIdx.x + blockIdx.x*blockDim.x;
-    if (row >= target.rows || col >= target.cols) return;
-
-    result.data[result.cols*row + col] = orig.data[col];
-}
-
-template <typename T>
-__global__ internal void mat_stretch_rows_kernel(mat<T> orig, mat<T> target, mat<T> result)
-{
-    int row = threadIdx.y + blockIdx.y*blockDim.y;
-    int col = threadIdx.x + blockIdx.x*blockDim.x;
-    if (row >= target.rows || col >= target.cols) return;
-
-    result.data[result.cols*row + col] = orig.data[row];
-}
-
-template <typename T>
 __global__ internal void mat_add_kernel(mat<T> a, mat<T> b)
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
@@ -134,6 +114,28 @@ __global__ internal void mat_add_kernel(mat<T> a, mat<T> b)
     
     size i = a.cols*row + col;
     a.data[i] += b.data[i];
+}
+
+template <typename T>
+__global__ internal void mat_add_vec_cols_kernel(mat<T> m, vec<T> v)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= m.rows || col >= m.cols) return;
+
+    size i = m.cols*row + col;
+    m.data[i] += v.data[row];
+}
+
+template <typename T>
+__global__ internal void mat_add_vec_rows_kernel(mat<T> m, vec<T> v)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= m.rows || col >= m.cols) return;
+
+    size i = m.cols*row + col;
+    m.data[i] += v.data[col];
 }
 
 template <typename T>
@@ -179,7 +181,7 @@ void mat_to(mat<T>* m, Device device)
     mat<T> result = {};
     result.rows = m->rows;
     result.cols = m->cols;
-    switch(m->device)
+    switch (m->device)
     {
         case Device_CPU:
         {
@@ -310,30 +312,37 @@ void mat_set_col_range_gpu(mat<T> m, vec<T> v, size col, size col_offset)
 }
 
 template <typename T>
-internal mat<T> mat_stretch_rows_gpu(mat<T> orig, mat<T> target)
-{
-    mat<T> result = mat_zeros_gpu<T>(target.rows, target.cols);
-    ThreadLayout layout = calc_thread_dim(target.rows, target.cols);
-    mat_stretch_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(orig, target, result);
-
-    return result;
-}
-
-template <typename T>
-internal mat<T> mat_stretch_cols_gpu(mat<T> orig, mat<T> target)
-{
-    mat<T> result = mat_zeros_gpu<T>(target.rows, target.cols);
-    ThreadLayout layout = calc_thread_dim(target.rows, target.cols);
-    mat_stretch_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(orig, target, result);
-
-    return result;
-}
-
-template <typename T>
 void mat_add_gpu(mat<T> a, mat<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.rows, a.cols);
     mat_add_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
+}
+
+template <typename T>
+void mat_add_vec_gpu(mat<T> m, vec<T> v, Axis axis)
+{
+    ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
+
+    switch (axis)
+    {
+        case Axis_Rows:
+        {
+            ASSERT(v.elements == m.cols,
+                "For a row-wise add, the vector must have the same number of elements as the matrix has columns.");
+
+            mat_add_vec_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v);
+        } break;
+        
+        case Axis_Cols:
+        {
+            ASSERT(v.elements == m.cols,
+                "For a column-wise add, the vector must have the same number of elements as the matrix has rows.");
+
+            mat_add_vec_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v);
+        } break;
+        
+        default: log_invalid_axis(axis); break;
+    }
 }
 
 template <typename T>
@@ -350,6 +359,9 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
     {
         case Axis_Rows:
         {
+            ASSERT(scale.elements == m.cols,
+                "For a row-wise scale, the vector must have the same number of elements as the matrix has columns.");
+
             for (size i = 0; i < m.rows; ++i)
             {
                 vec<T> row = mat_get_row(m, i);
@@ -361,6 +373,9 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
 
         case Axis_Cols:
         {
+            ASSERT(scale.elements == m.cols,
+                "For a column-wise scale, the vector must have the same number of elements as the matrix has rows.");
+
             for (size i = 0; i < m.cols; ++i)
             {
                 vec<T> col = mat_get_col(m, i);
@@ -370,7 +385,7 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
             }
         } break;
 
-        default: break;
+        default: log_invalid_axis(axis); break;
     }
 }
 
@@ -420,7 +435,7 @@ vec<T> mat_sum_gpu(mat<T> m, Axis axis)
             }
         } break;
 
-        default: break;
+        default: log_invalid_axis(axis); break;
     }
 
     return result;
@@ -435,9 +450,8 @@ vec<T> mat_sum_gpu(mat<T> m, Axis axis)
 #define MAT_SET_COL_GPU(T) INST_TEMPLATE(mat_set_col_gpu, void, T, (mat<T> m, vec<T> data, size col))
 #define MAT_SET_ROW_RANGE_GPU(T) INST_TEMPLATE(mat_set_row_range_gpu, void, T, (mat<T> m, vec<T> data, size row, size row_offset))
 #define MAT_SET_COL_RANGE_GPU(T) INST_TEMPLATE(mat_set_col_range_gpu, void, T, (mat<T> m, vec<T> data, size col, size col_offset))
-#define MAT_STRETCH_COLS_GPU(T) INST_TEMPLATE(mat_stretch_cols_gpu, mat<T>, T, (mat<T> orig, mat<T> target))
-#define MAT_STRETCH_ROWS_GPU(T) INST_TEMPLATE(mat_stretch_rows_gpu, mat<T>, T, (mat<T> orig, mat<T> target))
 #define MAT_ADD_GPU(T) INST_TEMPLATE(mat_add_gpu, void, T, (mat<T> a, mat<T> b))
+#define MAT_ADD_VEC_GPU(T) INST_TEMPLATE(mat_add_vec_gpu, void, T, (mat<T> m, vec<T> v, Axis axis))
 #define MAT_SCALE_GPU(T) INST_TEMPLATE(mat_scale_gpu, void, T, (mat<T> m, T scale))
 #define MAT_SCALE_GPU_VEC(T) INST_TEMPLATE(mat_scale_gpu, void, T, (mat<T> m, vec<T> scale, Axis axis))
 #define MAT_MUL_GPU(T) INST_TEMPLATE(mat_mul_gpu, mat<T>, T, (mat<T> a, mat<T> b))
@@ -453,9 +467,8 @@ INST_ALL_TYPES(MAT_SET_ROW_GPU)
 INST_ALL_TYPES(MAT_SET_COL_GPU)
 INST_ALL_TYPES(MAT_SET_ROW_RANGE_GPU)
 INST_ALL_TYPES(MAT_SET_COL_RANGE_GPU)
-INST_ALL_TYPES(MAT_STRETCH_COLS_GPU)
-INST_ALL_TYPES(MAT_STRETCH_ROWS_GPU)
 INST_ALL_TYPES(MAT_ADD_GPU)
+INST_ALL_TYPES(MAT_ADD_VEC_GPU)
 INST_ALL_TYPES(MAT_SCALE_GPU)
 INST_ALL_TYPES(MAT_SCALE_GPU_VEC)
 INST_ALL_TYPES(MAT_MUL_GPU)
@@ -471,9 +484,8 @@ INST_ALL_TYPES(MAT_SUM_GPU)
 #undef MAT_SET_COL_GPU
 #undef MAT_SET_ROW_RANGE_GPU
 #undef MAT_SET_COL_RANGE_GPU
-#undef MAT_STRETCH_COLS_GPU
-#undef MAT_STRETCH_ROWS_GPU
 #undef MAT_ADD_GPU
+#undef MAT_ADD_VEC_GPU
 #undef MAT_SCALE_GPU
 #undef MAT_SCALE_GPU_VEC
 #undef MAT_HAD_GPU
