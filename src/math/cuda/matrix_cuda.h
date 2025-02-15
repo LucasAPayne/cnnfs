@@ -16,6 +16,10 @@ mat<T> mat_zeros_gpu(size rows, size cols);
 template <typename T>
 mat<T> mat_full_gpu(size rows, size cols, T fill_value);
 
+mat<f32> mat_rand_uniform_gpu(size rows, size cols, f32 min, f32 max);
+mat<f32> mat_rand_gauss_gpu(size rows, size cols, f32 mean, f32 std_dev);
+mat<f32> mat_rand_gauss_standard_gpu(size rows, size cols);
+
 template <typename T>
 mat<T> mat_copy_gpu(mat<T> m);
 

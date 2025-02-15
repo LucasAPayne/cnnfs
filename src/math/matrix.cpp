@@ -88,43 +88,76 @@ internal mat<T> mat_copy(mat<T> m)
     return result;
 }
 
-internal mat<f32> mat_rand_uniform(f32 min, f32 max, size rows, size cols)
+internal mat<f32> mat_rand_uniform(size rows, size cols, f32 min, f32 max, Device device)
 {
-    // TODO(lucas): Use set row/col range?
-    mat<f32> result = mat_zeros<f32>(rows, cols);
+    mat<f32> result ={};
 
-    for (size row = 0; row < rows; ++row)
+    switch (device)
     {
-        for (size col = 0; col < cols; ++col)
-           result(row, col) = rand_f32_uniform(min, max);
+        case Device_CPU:
+        {
+            result = mat_zeros<f32>(rows, cols);
+            for (size row = 0; row < rows; ++row)
+            {
+                for (size col = 0; col < cols; ++col)
+                   result(row, col) = rand_f32_uniform(min, max);
+            }
+        } break;
+
+        case Device_GPU: result = mat_rand_uniform_gpu(rows, cols, min, max); break;
+
+        default: break;
     }
     
     return result;
 }
 
-internal mat<f32> mat_rand_gauss(f32 mean, f32 std_dev, size rows, size cols)
+internal mat<f32> mat_rand_gauss(size rows, size cols, f32 mean, f32 std_dev, Device device)
 {
-    mat<f32> result = mat_zeros<f32>(rows, cols);
-
-    for (size row = 0; row < rows; ++row)
-    {
-        for (size col = 0; col < cols; ++col)
-           result(row, col) = rand_f32_gauss(mean, std_dev);
-    }
+    mat<f32> result = {};
     
+    switch(device)
+    {
+        case Device_CPU:
+        {
+            result = mat_zeros<f32>(rows, cols);
+            for (size row = 0; row < rows; ++row)
+            {
+                for (size col = 0; col < cols; ++col)
+                   result(row, col) = rand_f32_gauss(mean, std_dev);
+            }
+            
+        } break;
+
+        case Device_GPU: result = mat_rand_gauss_gpu(rows, cols, mean, std_dev); break;
+
+        default: break;
+    }
+
     return result;
 }
 
-internal mat<f32> mat_rand_gauss_standard(size rows, size cols)
+internal mat<f32> mat_rand_gauss_standard(size rows, size cols, Device device)
 {
-    mat<f32> result = mat_zeros<f32>(rows, cols);
-
-    for (size row = 0; row < rows; ++row)
-    {
-        for (size col = 0; col < cols; ++col)
-           result(row, col) = rand_f32_gauss_standard();
-    }
+    mat<f32> result = {};
     
+    switch(device)
+    {
+        case Device_CPU:
+        {
+            result = mat_zeros<f32>(rows, cols);
+            for (size row = 0; row < rows; ++row)
+            {
+                for (size col = 0; col < cols; ++col)
+                   result(row, col) = rand_f32_gauss_standard();
+            }
+        } break;
+
+        case Device_GPU: result = mat_rand_gauss_standard_gpu(rows, cols); break;
+
+        default: break;
+    }
+
     return result;
 }
 
@@ -176,7 +209,7 @@ vec<T> mat_get_row(mat<T> m, size row)
     ASSERT(row < m.rows, "Row out of bounds.\n");
 
     vec<T> result = {};
-    result.elements = m.rows;
+    result.elements = m.cols;
     result.device = m.device;
     result.data = m.data + row*m.cols;
 

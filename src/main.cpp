@@ -2,9 +2,8 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Add RNG for GPU.
-
 // TODO(lucas): Try to eliminate copying data between host and device in mat_sum_gpu and mat_scale_gpu
+// TODO(lucas): Speed up softmax (mat_sum and mat_scale take most of the time). Use large dataset size to test.
 // TODO(lucas): Use shared memory in CUDA code where appropraite (e.g., matrix ops).
 
 // TODO(lucas): Switch to growable arenas and get rid of individual vec/matrix allocations.
@@ -19,7 +18,7 @@ int main(void)
     profiler_begin();
     rand_seed(123);
 
-    Device device = Device_GPU;
+    Device device = Device_CPU;
 
     time_block_begin("Dataset Creation");
     mat<f32> data;

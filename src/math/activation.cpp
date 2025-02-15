@@ -2,6 +2,8 @@
 #include "math/cuda/activation_cuda.h"
 #include "cnnfs_math.h"
 
+#include "profile.h"
+
 internal void relu_forward(mat<f32> inputs)
 {
     switch (inputs.device)

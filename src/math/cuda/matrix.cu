@@ -1,33 +1,9 @@
 #include "cuda_base.h"
 #include "matrix_cuda.h"
 #include "vector_cuda.h"
+#include "util/rng.h"
 
-// TODO(lucas): Temporary
-template <typename T>
-internal vec<T> mat_get_row(mat<T> m, size row)
-{
-    ASSERT(row < m.rows, "Row out of range.\n");
-
-    vec<T> result = {};
-    result.elements = m.cols;
-    result.device = m.device;
-    result.data = m.data + row*m.cols;
-
-    return result;
-}
-
-template <typename T>
-internal vec<T> mat_get_col(mat<T> m, size col)
-{
-    ASSERT(col < m.cols, "Column out of range.\n");
-
-    vec<T> result = {};
-    result.elements = m.rows;
-    result.device = m.device;
-    result.data = m.data + col;
-
-    return result;
-}
+#include <curand_kernel.h>
 
 template <typename T>
 __global__ internal void mat_full_kernel(mat<T> result, T fill_value)
@@ -38,6 +14,44 @@ __global__ internal void mat_full_kernel(mat<T> result, T fill_value)
 
     size i = row*result.cols + col;
     result.data[i] = fill_value;
+}
+
+__global__ internal void mat_rand_uniform_kernel(mat<f32> result, f32 min, f32 max, u64 seed)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= result.rows || col >= result.cols) return;
+    size i = row*result.cols + col;
+
+    curandState state = {};
+    curand_init(seed, i, 0, &state);
+    f32 val = curand_uniform(&state);
+    result.data[i] = min + val * (max - min);
+}
+
+__global__ internal void mat_rand_gauss_kernel(mat<f32> result, f32 mean, f32 std_dev, u64 seed)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= result.rows || col >= result.cols) return;
+    size i = row*result.cols + col;
+
+    curandState state = {};
+    curand_init(seed, i, 0, &state);
+    f32 val = curand_normal(&state);
+    result.data[i] = val*std_dev + mean;
+}
+
+__global__ internal void mat_rand_gauss_standard_kernel(mat<f32> result, u64 seed)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= result.rows || col >= result.cols) return;
+    size i = row*result.cols + col;
+
+    curandState state = {};
+    curand_init(seed, i, 0, &state);
+    result.data[i] = curand_normal(&state);
 }
 
 template <typename T>
@@ -226,7 +240,33 @@ mat<T> mat_full_gpu(size rows, size cols, T fill_value)
     mat<T> result = mat_zeros_gpu<T>(rows, cols);
     ThreadLayout layout = calc_thread_dim(rows, cols);
     mat_full_kernel<<<layout.grid_dim, layout.block_dim>>>(result, fill_value);
-    sync_kernel();
+
+    return result;
+}
+
+mat<f32> mat_rand_uniform_gpu(size rows, size cols, f32 min, f32 max)
+{
+    mat<f32> result = mat_zeros_gpu<f32>(rows, cols);
+    ThreadLayout layout = calc_thread_dim(rows, cols);
+    mat_rand_uniform_kernel<<<layout.grid_dim, layout.block_dim>>>(result, min, max, gpu_rng_global.seed);
+
+    return result;
+}
+
+mat<f32> mat_rand_gauss_gpu(size rows, size cols, f32 mean, f32 std_dev)
+{
+    mat<f32> result = mat_zeros_gpu<f32>(rows, cols);
+    ThreadLayout layout = calc_thread_dim(rows, cols);
+    mat_rand_gauss_kernel<<<layout.grid_dim, layout.block_dim>>>(result, mean, std_dev, gpu_rng_global.seed);
+
+    return result;
+}
+
+mat<f32> mat_rand_gauss_standard_gpu(size rows, size cols)
+{
+    mat<f32> result = mat_zeros_gpu<f32>(rows, cols);
+    ThreadLayout layout = calc_thread_dim(rows, cols);
+    mat_rand_gauss_standard_kernel<<<layout.grid_dim, layout.block_dim>>>(result, gpu_rng_global.seed);
 
     return result;
 }
@@ -237,7 +277,6 @@ mat<T> mat_copy_gpu(mat<T> m)
     mat<T> result = mat_zeros_gpu<T>(m.rows, m.cols);
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_copy_kernel<<<layout.grid_dim, layout.block_dim>>>(result, m);
-    sync_kernel();
 
     return result;
 }
@@ -247,7 +286,6 @@ void mat_set_row_gpu(mat<T> m, vec<T> v, size row)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_set_row_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v, row);
-    sync_kernel();
 }
 
 template <typename T>
@@ -255,7 +293,6 @@ void mat_set_col_gpu(mat<T> m, vec<T> v, size col)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_set_col_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v, col);
-    sync_kernel();
 }
 
 template <typename T>
@@ -263,7 +300,6 @@ void mat_set_row_range_gpu(mat<T> m, vec<T> v, size row, size row_offset)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_set_row_range_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v, row, row_offset);
-    sync_kernel();
 }
 
 template <typename T>
@@ -271,7 +307,6 @@ void mat_set_col_range_gpu(mat<T> m, vec<T> v, size col, size col_offset)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_set_col_range_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v, col, col_offset);
-    sync_kernel();
 }
 
 template <typename T>
@@ -280,7 +315,6 @@ internal mat<T> mat_stretch_rows_gpu(mat<T> orig, mat<T> target)
     mat<T> result = mat_zeros_gpu<T>(target.rows, target.cols);
     ThreadLayout layout = calc_thread_dim(target.rows, target.cols);
     mat_stretch_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(orig, target, result);
-    sync_kernel();
 
     return result;
 }
@@ -291,7 +325,6 @@ internal mat<T> mat_stretch_cols_gpu(mat<T> orig, mat<T> target)
     mat<T> result = mat_zeros_gpu<T>(target.rows, target.cols);
     ThreadLayout layout = calc_thread_dim(target.rows, target.cols);
     mat_stretch_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(orig, target, result);
-    sync_kernel();
 
     return result;
 }
@@ -301,7 +334,6 @@ void mat_add_gpu(mat<T> a, mat<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.rows, a.cols);
     mat_add_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
-    sync_kernel();
 }
 
 template <typename T>
@@ -309,7 +341,6 @@ void mat_scale_gpu(mat<T> m, T value)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_scale_kernel<<<layout.grid_dim, layout.block_dim>>>(m, value);
-    sync_kernel();
 }
 
 template <typename T>
@@ -349,7 +380,6 @@ mat<T> mat_mul_gpu(mat<T> a, mat<T> b)
     mat<T> result = mat_zeros_gpu<T>(a.rows, b.cols);
     ThreadLayout layout = calc_thread_dim(a.rows, b.cols);
     mat_mul_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b, result);
-    sync_kernel();
 
     return result;
 }
@@ -359,7 +389,6 @@ void mat_had_gpu(mat<T> a, mat<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.rows, a.cols);
     mat_had_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
-    sync_kernel();
 }
 
 // TODO(lucas): Perform sums in parallel.

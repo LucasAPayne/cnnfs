@@ -80,7 +80,7 @@ internal vec<T> vec_copy(vec<T> v)
     return result;
 }
 
-internal vec<f32> vec_rand_uniform(f32 min, f32 max, size n, Device device)
+internal vec<f32> vec_rand_uniform(size n, f32 min, f32 max, Device device)
 {
     vec<f32> result = {};
     switch (device)
@@ -92,7 +92,7 @@ internal vec<f32> vec_rand_uniform(f32 min, f32 max, size n, Device device)
                 result[i] = rand_f32_uniform(min, max);
         } break;
 
-        case Device_GPU: result = vec_rand_uniform_gpu(min, max, n); break;
+        case Device_GPU: result = vec_rand_uniform_gpu(n, min, max); break;
 
         default: break;
     }
@@ -100,7 +100,7 @@ internal vec<f32> vec_rand_uniform(f32 min, f32 max, size n, Device device)
     return result;
 }
 
-internal vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, size n, Device device)
+internal vec<f32> vec_rand_gauss(size n, f32 mean, f32 std_dev, Device device)
 {
     vec<f32> result = {};
     switch (device)
@@ -113,7 +113,7 @@ internal vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, size n, Device device)
                 result[i] = rand_f32_gauss(mean, std_dev);
         } break;
 
-        case Device_GPU: result = vec_rand_gauss_gpu(mean, std_dev, n); break;
+        case Device_GPU: result = vec_rand_gauss_gpu(n, mean, std_dev); break;
 
         default: break;
     }
@@ -262,7 +262,7 @@ internal vec<T> vec_scale_inv(vec<T> v, T c, b32 in_place)
             }
         } break;
 
-        case Device_GPU: vec_scale_inv_gpu(result, c); break;
+        case Device_GPU: result = vec_scale_inv_gpu(result, c); break;
 
         default: log_invalid_device(v.device); break;
     }

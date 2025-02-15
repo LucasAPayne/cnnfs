@@ -1,3 +1,7 @@
+/* IMPORTANT: Randomly generated sequences may not be reproducible across CPU and GPU implementations,
+ * or across different versions or commits of this library.
+*/
+
 #pragma once
 
 #include "math/cnnfs_math.h"

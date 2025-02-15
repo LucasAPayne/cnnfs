@@ -13,8 +13,8 @@ vec<T> vec_zeros_gpu(size elements);
 template <typename T>
 vec<T> vec_full_gpu(size elements, T fill_value);
 
-vec<f32> vec_rand_uniform_gpu(f32 min, f32 max, size n);
-vec<f32> vec_rand_gauss_gpu(f32 mean, f32 std_dev, size n);
+vec<f32> vec_rand_uniform_gpu(size n, f32 min, f32 max);
+vec<f32> vec_rand_gauss_gpu(size n, f32 mean, f32 std_dev);
 vec<f32> vec_rand_gauss_standard_gpu(size n);
 
 template <typename T>

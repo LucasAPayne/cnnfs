@@ -120,8 +120,8 @@ vec<T> vec_zeros(size elements, Device device=Device_CPU);
 template <typename T>
 internal vec<T> vec_full(size elements, T value, Device device=Device_CPU);
 
-internal vec<f32> vec_rand_uniform(f32 min, f32 max, size n, Device device=Device_CPU);
-internal vec<f32> vec_rand_gauss(f32 mean, f32 std_dev, size n, Device device=Device_CPU);
+internal vec<f32> vec_rand_uniform(size n, f32 min, f32 max, Device device=Device_CPU);
+internal vec<f32> vec_rand_gauss(size n, f32 mean, f32 std_dev, Device device=Device_CPU);
 internal vec<f32> vec_rand_gauss_standard(size n, Device device=Device_CPU);
 
 // Create a new vector and copy in values from another vector

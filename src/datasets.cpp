@@ -2,6 +2,8 @@
 #include "math/cnnfs_math.h"
 #include "util/rng.h"
 
+#include "profile.h"
+
 // NOTE(lucas): Spiral dataset adapted from https://github.com/Sentdex/nnfs/blob/master/nnfs/datasets/spiral.py
 void create_spiral_data(size samples, u32 classes, mat<f32>* out_data, vec<u32>* out_labels, Device device)
 {
@@ -15,8 +17,7 @@ void create_spiral_data(size samples, u32 classes, mat<f32>* out_data, vec<u32>*
         // Increasing radius over the domain results in a spiral shape rather than a circle
         vec<f32> r = linspace(0.0f, 1.0f, samples, device);
 
-        vec<f32> rand_vals = vec_rand_gauss_standard(samples);
-        vec_to(&rand_vals, device);
+        vec<f32> rand_vals = vec_rand_gauss_standard(samples, device);
         rand_vals *= 0.2f;
 
         // Each class has a different domain of angles, which rotates the spiral of each class.

@@ -1,34 +1,34 @@
 #include "cuda_base.h"
-#include "rng.h"
 #include "vector_cuda.h"
 #include "profile.h"
+#include "util/rng.h"
 
 #include <curand_kernel.h>
 
 template <typename T>
-__global__ internal void vec_full_kernel(vec<T> v, T fill_value)
+__global__ internal void vec_full_kernel(vec<T> result, T fill_value)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-    if (i >= v.elements) return;
+    if (i >= result.elements) return;
     
-    v.data[i] = fill_value;
+    result.data[i] = fill_value;
 }
 
-__global__ internal void vec_rand_uniform_kernel(vec<f32> v, f32 min, f32 max, u64 seed)
+__global__ internal void vec_rand_uniform_kernel(vec<f32> result, f32 min, f32 max, u64 seed)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-    if (i >= v.elements) return;
+    if (i >= result.elements) return;
 
     curandState state = {};
     curand_init(seed+i, 0, 0, &state);
     f32 val = curand_uniform(&state);
-    v.data[i] = min + val * (max - min);
+    result.data[i] = min + val * (max - min);
 }
 
-__global__ internal void vec_rand_gauss_kernel(vec<f32> v, f32 mean, f32 std_dev, u64 seed)
+__global__ internal void vec_rand_gauss_kernel(vec<f32> result, f32 mean, f32 std_dev, u64 seed)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-    if (2*i > v.elements) return;
+    if (2*i > result.elements) return;
 
     curandState state = {};
     curand_init(seed+i, 0, 0, &state);
@@ -36,24 +36,24 @@ __global__ internal void vec_rand_gauss_kernel(vec<f32> v, f32 mean, f32 std_dev
 
     // NOTE(lucas): curand_normal uses a standard Gaussian distribution,
     // so it needs to be shifted to the desired mean and standard deviation.
-    v.data[2*i] = vals.x*std_dev + mean;
+    result.data[2*i] = vals.x*std_dev + mean;
 
-    if (2*i + 1 >= v.elements) return;
-    v.data[2*i+1] = vals.y*std_dev + mean;
+    if (2*i + 1 >= result.elements) return;
+    result.data[2*i+1] = vals.y*std_dev + mean;
 }
 
-__global__ internal void vec_rand_gauss_standard_kernel(vec<f32> v, u64 seed)
+__global__ internal void vec_rand_gauss_standard_kernel(vec<f32> result, u64 seed)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
-    if (2*i > v.elements) return;
+    if (2*i > result.elements) return;
 
     curandState state = {};
     curand_init(seed+i, 0, 0, &state);
     float2 vals = curand_normal2(&state);
 
-    v.data[2*i] = vals.x;
-    if (2*i + 1 >= v.elements) return;
-    v.data[2*i + 1] = vals.y;
+    result.data[2*i] = vals.x;
+    if (2*i + 1 >= result.elements) return;
+    result.data[2*i + 1] = vals.y;
 }
 
 template <typename T>
@@ -98,7 +98,7 @@ __global__ internal void vec_scale_inv_kernel(vec<T> v, T c)
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= v.elements) return;
     
-    if (v.data[i])
+    if (v.data[i] != 0)
         v.data[i] = (T)c / v.data[i];
 }
 
@@ -202,12 +202,11 @@ vec<T> vec_full_gpu(size elements, T fill_value)
     ThreadLayout layout = calc_thread_dim(elements);
     vec<T> result = vec_zeros_gpu<T>(elements);
     vec_full_kernel<<<layout.grid_dim, layout.block_dim>>>(result, fill_value);
-    sync_kernel();
 
     return result;
 }
 
-vec<f32> vec_rand_uniform_gpu(f32 min, f32 max, size n)
+vec<f32> vec_rand_uniform_gpu(size n, f32 min, f32 max)
 {
     vec<f32> result = vec_zeros_gpu<f32>(n);
     ThreadLayout layout = calc_thread_dim(n);
@@ -216,7 +215,7 @@ vec<f32> vec_rand_uniform_gpu(f32 min, f32 max, size n)
     return result;
 }
 
-vec<f32> vec_rand_gauss_gpu(f32 mean, f32 std_dev, size n)
+vec<f32> vec_rand_gauss_gpu(size n, f32 mean, f32 std_dev)
 {
     vec<f32> result = vec_zeros_gpu<f32>(n);
     ThreadLayout layout = calc_thread_dim(n);
@@ -240,7 +239,6 @@ vec<T> vec_copy_gpu(vec<T> v)
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec<T> result = vec_zeros_gpu<T>(v.elements);
     vec_copy_kernel<<<layout.grid_dim, layout.block_dim>>>(result, v);
-    sync_kernel();
 
     return result;
 }
@@ -250,7 +248,6 @@ void vec_set_range_gpu(vec<T> v, vec<T> data, size offset)
 {
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_set_range_kernel<<<layout.grid_dim, layout.block_dim>>>(v, data, offset);
-    sync_kernel();
 }
 
 template <typename T>
@@ -258,7 +255,6 @@ void vec_add_gpu(vec<T> a, vec<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.elements);
     vec_add_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
-    sync_kernel();
 }
 
 template <typename T>
@@ -266,7 +262,6 @@ void vec_scale_gpu(vec<T> v, T c)
 {
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_scale_kernel<<<layout.grid_dim, layout.block_dim>>>(v, c);
-    sync_kernel();
 }
 
 template <typename T>
@@ -274,7 +269,6 @@ vec<T> vec_scale_inv_gpu(vec<T> v, T c)
 {
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_scale_inv_kernel<<<layout.grid_dim, layout.block_dim>>>(v, c);
-    sync_kernel();
     return v;
 }
 
@@ -283,7 +277,6 @@ void vec_had_gpu(vec<T> a, vec<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.elements);
     vec_had_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
-    sync_kernel();
 }
 
 template <typename T>
@@ -295,7 +288,6 @@ T vec_sum_gpu(vec<T> v)
 
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_sum_kernel<<<layout.grid_dim, layout.block_dim>>>(v, out);
-    sync_kernel();
     
     T result;
     cuda_call(cudaMemcpy(&result, out, sizeof(T), cudaMemcpyDeviceToHost));
