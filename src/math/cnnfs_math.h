@@ -38,14 +38,14 @@ internal inline f64 cos_f64(f64 x)
     return result;
 }
 
-vec<f32> sin_vec(vec<f32> v);
-vec<f64> sin_vec(vec<f64> v);
+vec<f32> sin_vec(vec<f32> v, b32 in_place=true);
+vec<f64> sin_vec(vec<f64> v, b32 in_place=true);
 
-vec<f32> cos_vec(vec<f32> v);
-vec<f64> cos_vec(vec<f64> v);
+vec<f32> cos_vec(vec<f32> v, b32 in_place=true);
+vec<f64> cos_vec(vec<f64> v, b32 in_place=true);
 
-void exp_vec(vec<f32> v);
-void exp_vec(vec<f64> v);
+vec<f32> exp_vec(vec<f32> v, b32 in_place=true);
+vec<f64> exp_vec(vec<f64> v, b32 in_place=true);
 
-void exp_mat(mat<f32> m);
-void exp_mat(mat<f64> m);
+mat<f32> exp_mat(mat<f32> m, b32 in_place=true);
+mat<f64> exp_mat(mat<f64> m, b32 in_place=true);

@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Make sure every appropriate math function returns a value.
-
 // TODO(lucas): Use more optimized reductions.
 // https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf slide 35
 // TODO(lucas): Is it possible to make a general reduction for matrices that works across rows or columns?

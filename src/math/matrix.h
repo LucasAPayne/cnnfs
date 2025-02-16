@@ -158,7 +158,7 @@ internal mat<T> mat_scale(mat<T> m, T scale, b32 in_place=true);
  * and scaling along the columns will scale the ith value of each column with the ith vector element.
  */
 template <typename T>
-internal void mat_scale(mat<T> m, vec<T> scale, Axis axis=Axis_Rows);
+internal mat<T> mat_scale(mat<T> m, vec<T> scale, Axis axis=Axis_Rows, b32 in_place=true);
 
 template <typename T>
 internal mat<T> mat_mul(mat<T> a, mat<T> b);

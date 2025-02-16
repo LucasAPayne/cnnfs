@@ -475,16 +475,19 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
 }
 
 template <typename T>
-internal void mat_scale(mat<T> m, vec<T> scale, Axis axis)
+internal mat<T> mat_scale(mat<T> m, vec<T> scale, Axis axis, b32 in_place)
 {
     ASSERT(m.device == scale.device, "The matrix and vector must be on the same device.\n");
 
-    switch (m.device)
+    mat<T> result = in_place ? m : mat_copy(m);
+    switch (result.device)
     {
-        case Device_CPU: mat_scale_cpu(m, scale, axis); break;
-        case Device_GPU: mat_scale_gpu(m, scale, axis); break;
-        default: log_invalid_device(m.device); break;
+        case Device_CPU: mat_scale_cpu(result, scale, axis); break;
+        case Device_GPU: mat_scale_gpu(result, scale, axis); break;
+        default: log_invalid_device(result.device); break;
     }
+
+    return result;
 }
 
 template <typename T>

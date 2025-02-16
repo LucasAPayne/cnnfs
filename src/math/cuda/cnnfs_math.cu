@@ -18,31 +18,31 @@ __global__ internal void linspace_kernel(vec<f64> v, f64 x1, f64 dx)
     v.data[i] = x1 + ((f64)i*dx);
 }
 
-__global__ internal void sin_vec_kernel(vec<f32> v, vec<f32> result)
+__global__ internal void sin_vec_kernel(vec<f32> v)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= v.elements) return;
     
-    result.data[i] = sinf(v.data[i]);
+    v.data[i] = sinf(v.data[i]);
 }
 
-__global__ internal void sin_vec_kernel(vec<f64> v, vec<f64> result)
+__global__ internal void sin_vec_kernel(vec<f64> v)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= v.elements) return;
     
-    result.data[i] = sin(v.data[i]);
+    v.data[i] = sin(v.data[i]);
 }
 
-__global__ internal void cos_vec_kernel(vec<f32> v, vec<f32> result)
+__global__ internal void cos_vec_kernel(vec<f32> v)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= v.elements) return;
     
-    result.data[i] = cosf(v.data[i]);
+    v.data[i] = cosf(v.data[i]);
 }
 
-__global__ internal void cos_vec_kernel(vec<f64> v, vec<f64> result)
+__global__ internal void cos_vec_kernel(vec<f64> v)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= v.elements) return;
@@ -104,46 +104,40 @@ vec<f64> linspace_gpu(f64 x1, f64 x2, size n)
     return result;
 }
 
-vec<f32> sin_vec_gpu(vec<f32> v)
+void sin_vec_gpu(vec<f32> v)
 {
-    vec<f32> result = vec_zeros_gpu<f32>(v.elements);
-    sin_vec_kernel<<<1, 256>>>(v, result);
-
-    return result;
+    ThreadLayout layout = calc_thread_dim(v.elements);
+    sin_vec_kernel<<<layout.grid_dim, layout.block_dim>>>(v);
 }
 
-vec<f64> sin_vec_gpu(vec<f64> v)
+void sin_vec_gpu(vec<f64> v)
 {
-    vec<f64> result = vec_zeros_gpu<f64>(v.elements);
-    sin_vec_kernel<<<1, 256>>>(v, result);
-
-    return result;
+    ThreadLayout layout = calc_thread_dim(v.elements);
+    sin_vec_kernel<<<layout.grid_dim, layout.block_dim>>>(v);
 }
 
-vec<f32> cos_vec_gpu(vec<f32> v)
+void cos_vec_gpu(vec<f32> v)
 {
-    vec<f32> result = vec_zeros_gpu<f32>(v.elements);
-    cos_vec_kernel<<<1, 256>>>(v, result);
-
-    return result;
+    ThreadLayout layout = calc_thread_dim(v.elements);
+    cos_vec_kernel<<<layout.grid_dim, layout.block_dim>>>(v);
 }
 
-vec<f64> cos_vec_gpu(vec<f64> v)
+void cos_vec_gpu(vec<f64> v)
 {
-    vec<f64> result = vec_zeros_gpu<f64>(v.elements);
-    cos_vec_kernel<<<1, 256>>>(v, result);
-
-    return result;
+    ThreadLayout layout = calc_thread_dim(v.elements);
+    cos_vec_kernel<<<layout.grid_dim, layout.block_dim>>>(v);
 }
 
 void exp_vec_gpu(vec<f32> v)
 {
-    exp_vec_kernel<<<1, 256>>>(v);
+    ThreadLayout layout = calc_thread_dim(v.elements);
+    exp_vec_kernel<<<layout.grid_dim, layout.block_dim>>>(v);
 }
 
 void exp_vec_gpu(vec<f64> v)
 {
-    exp_vec_kernel<<<1, 256>>>(v);
+    ThreadLayout layout = calc_thread_dim(v.elements);
+    exp_vec_kernel<<<layout.grid_dim, layout.block_dim>>>(v);
 }
 
 void exp_mat_gpu(mat<f32> m)

@@ -47,158 +47,166 @@ vec<f64> linspace(f64 x1, f64 x2, size n, Device device)
     return result;
 }
 
-vec<f32> sin_vec(vec<f32> v)
+vec<f32> sin_vec(vec<f32> v, b32 in_place)
 {
-    vec<f32> result = {};
-    switch (v.device)
+    vec<f32> result = in_place ? v : vec_copy(v);
+    switch (result.device)
     {
         case Device_CPU:
         {
-            result = vec_zeros<f32>(v.elements);
-            for (size i = 0; i < v.elements; ++i)
-                result[i] = sin_f32(v[i]);
+            for (size i = 0; i < result.elements; ++i)
+                result[i] = sin_f32(result[i]);
         } break;
 
-        case Device_GPU: result = sin_vec_gpu(v); break;
+        case Device_GPU: sin_vec_gpu(result); break;
 
-        default: log_invalid_device(v.device); break;
+        default: log_invalid_device(result.device); break;
     }
 
     return result;
 }
 
-vec<f64> sin_vec(vec<f64> v)
+vec<f64> sin_vec(vec<f64> v, b32 in_place)
 {
-    vec<f64> result = {};
+    vec<f64> result = in_place ? v : vec_copy(v);
     switch (v.device)
     {
         case Device_CPU:
         {
-            result = vec_zeros<f64>(v.elements);
-            for (size i = 0; i < v.elements; ++i)
-                result[i] = sin_f64(v[i]);
+            for (size i = 0; i < result.elements; ++i)
+                result[i] = sin_f64(result[i]);
         } break;
 
-        case Device_GPU: result = sin_vec_gpu(v); break;
+        case Device_GPU: sin_vec_gpu(result); break;
 
-        default: log_invalid_device(v.device); break;
+        default: log_invalid_device(result.device); break;
     }
 
     return result;
 }
 
-vec<f32> cos_vec(vec<f32> v)
+vec<f32> cos_vec(vec<f32> v, b32 in_place)
 {
-    vec<f32> result = {};
-    switch (v.device)
+    vec<f32> result = in_place ? v : vec_copy(v);
+    switch (result.device)
     {
         case Device_CPU:
         {
-            result = vec_zeros<f32>(v.elements);
-            for (size i = 0; i < v.elements; ++i)
-                result[i] = cos_f32(v[i]);
+            for (size i = 0; i < result.elements; ++i)
+                result[i] = cos_f32(result[i]);
         } break;
 
-        case Device_GPU: result = cos_vec_gpu(v); break;
+        case Device_GPU: cos_vec_gpu(result); break;
 
-        default: log_invalid_device(v.device); break;
+        default: log_invalid_device(result.device); break;
     }
     
     return result;
 }
 
-vec<f64> cos_vec(vec<f64> v)
+vec<f64> cos_vec(vec<f64> v, b32 in_place)
 {
-    vec<f64> result = {};
-    switch (v.device)
+    vec<f64> result = in_place ? v : vec_copy(v);
+    switch (result.device)
     {
         case Device_CPU:
         {
-            result = vec_zeros<f64>(v.elements);
-            for (size i = 0; i < v.elements; ++i)
-                v[i] = cos_f64(v[i]);
+            for (size i = 0; i < result.elements; ++i)
+                result[i] = cos_f64(result[i]);
         } break;
 
-        case Device_GPU: result = cos_vec_gpu(v); break;
+        case Device_GPU: cos_vec_gpu(result); break;
 
-        default: log_invalid_device(v.device); break;
+        default: log_invalid_device(result.device); break;
     }
 
     return result;
 }
 
-void exp_vec(vec<f32> v)
+vec<f32> exp_vec(vec<f32> v, b32 in_place)
 {
-    switch (v.device)
+    vec<f32> result = in_place ? v : vec_copy(v);
+    switch (result.device)
     {
         case Device_CPU:
         {
-            for (size i = 0; i < v.elements; ++i)
-                v[i] = expf(v[i]);
+            for (size i = 0; i < result.elements; ++i)
+                result[i] = expf(result[i]);
         } break;
 
-        case Device_GPU: exp_vec_gpu(v); break;
+        case Device_GPU: exp_vec_gpu(result); break;
 
-        default: log_invalid_device(v.device); break;
+        default: log_invalid_device(result.device); break;
     }
+
+    return result;
 }
 
-void exp_vec(vec<f64> v)
+vec<f64> exp_vec(vec<f64> v, b32 in_place)
 {
-    switch (v.device)
+    vec<f64> result = in_place ? v : vec_copy(v);
+    switch (result.device)
     {
         case Device_CPU:
         {
-            for (size i = 0; i < v.elements; ++i)
-                v[i] = exp(v[i]);
+            for (size i = 0; i < result.elements; ++i)
+                result[i] = exp(result[i]);
         } break;
 
-        case Device_GPU: exp_vec_gpu(v); break;
+        case Device_GPU: exp_vec_gpu(result); break;
 
-        default: log_invalid_device(v.device); break;
+        default: log_invalid_device(result.device); break;
     }
+
+    return result;
 }
 
-void exp_mat(mat<f32> m)
+mat<f32> exp_mat(mat<f32> m, b32 in_place)
 {
-    switch (m.device)
+    mat<f32> result = in_place ? m : mat_copy(m);
+    switch (result.device)
     {
         case Device_CPU:
         {
-            for (size col = 0; col < m.cols; ++col)
+            for (size col = 0; col < result.cols; ++col)
             {
-                for (size row = 0; row < m.rows; ++row)
+                for (size row = 0; row < result.rows; ++row)
                 {
-                    f32 val = expf(m(row, col));
-                    m(row, col) = val;
+                    f32 val = expf(result(row, col));
+                    result(row, col) = val;
                 }
             }
         } break;
 
-        case Device_GPU: exp_mat_gpu(m); break;
+        case Device_GPU: exp_mat_gpu(result); break;
 
-        default: log_invalid_device(m.device); break;
+        default: log_invalid_device(result.device); break;
     }
+
+    return result;
 }
 
-void exp_mat(mat<f64> m)
+mat<f64> exp_mat(mat<f64> m, b32 in_place)
 {
-    switch (m.device)
+    mat<f64> result = in_place ? m : mat_copy(m);
+    switch (result.device)
     {
         case Device_CPU:
         {
-            for (size col = 0; col < m.cols; ++col)
+            for (size col = 0; col < result.cols; ++col)
             {
-                for (size row = 0; row < m.rows; ++row)
+                for (size row = 0; row < result.rows; ++row)
                 {
-                    f64 val = exp(m(row, col));
-                    m(row, col) = val;
+                    f64 val = exp(result(row, col));
+                    result(row, col) = val;
                 }
             }
         } break;
 
-        case Device_GPU: exp_mat_gpu(m); break;
+        case Device_GPU: exp_mat_gpu(result); break;
 
-        default: log_invalid_device(m.device); break;
+        default: log_invalid_device(result.device); break;
     }
+
+    return result;
 }
