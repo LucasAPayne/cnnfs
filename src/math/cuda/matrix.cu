@@ -146,7 +146,7 @@ __global__ internal void mat_scale_rows_kernel(mat<T> m, vec<T> scale)
     if (row >= m.rows || col >= m.cols) return;
 
     size i = m.cols*row + col;
-    m.data[i] *= scale.data[col];
+    m.data[i] *= scale.data[row];
 }
 
 template <typename T>
@@ -157,7 +157,7 @@ __global__ internal void mat_scale_cols_kernel(mat<T> m, vec<T> scale)
     if (row >= m.rows || col >= m.cols) return;
 
     size i = m.cols*row + col;
-    m.data[i] *= scale.data[row];
+    m.data[i] *= scale.data[col];
 }
 
 template <typename T>
@@ -175,13 +175,12 @@ template <typename T>
 __global__ internal void mat_sum_rows_kernel(mat<T> m, vec<T> result)
 {
     __shared__ T shared_mem[256];
-    int row = blockIdx.y;
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x * blockDim.x;
     if (row >= m.rows || col >= m.cols) return;
 
     size i = m.cols*row + col;
     int tid = threadIdx.x;
-    T sum = 0;
     shared_mem[tid] = m.data[i];
     __syncthreads();
 
@@ -200,7 +199,7 @@ template <typename T>
 __global__ internal void mat_sum_cols_kernel(mat<T> m, vec<T> result)
 {
     __shared__ T shared_mem[256];
-    int row = blockIdx.y;
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x * blockDim.x;
     if (row >= m.rows || col >= m.cols) return;
 
@@ -400,7 +399,7 @@ void mat_add_vec_gpu(mat<T> m, vec<T> v, Axis axis)
         case Axis_Rows:
         {
             ASSERT(v.elements == m.cols,
-                "For a row-wise add, the vector must have the same number of elements as the matrix has columns.");
+                "For a row-wise add, the vector must have the same number of elements as the matrix has rows.");
 
             mat_add_vec_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v);
         } break;
@@ -408,7 +407,7 @@ void mat_add_vec_gpu(mat<T> m, vec<T> v, Axis axis)
         case Axis_Cols:
         {
             ASSERT(v.elements == m.cols,
-                "For a column-wise add, the vector must have the same number of elements as the matrix has rows.");
+                "For a column-wise add, the vector must have the same number of elements as the matrix has cols.");
 
             mat_add_vec_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v);
         } break;
@@ -432,7 +431,7 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
     {
         case Axis_Rows:
         {
-            ASSERT(scale.elements == m.cols,
+            ASSERT(scale.elements == m.rows,
                 "For a row-wise scale, the vector must have the same number of elements as the matrix has columns.");
 
             mat_scale_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(m, scale);
@@ -467,7 +466,6 @@ void mat_had_gpu(mat<T> a, mat<T> b)
     mat_had_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
 }
 
-// TODO(lucas): Perform sums in parallel.
 template <typename T>
 vec<T> mat_sum_gpu(mat<T> m, Axis axis)
 {
@@ -485,7 +483,7 @@ vec<T> mat_sum_gpu(mat<T> m, Axis axis)
         case Axis_Cols:
         {
             result = vec_zeros_gpu<T>(m.cols);
-            mat_sum_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, result);
+            mat_sum_cols_kernel<<<layout.grid_dim, layout.block_dim, shared_mem_size>>>(m, result);
         } break;
 
         default: log_invalid_axis(axis); break;

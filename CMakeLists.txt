@@ -13,6 +13,7 @@ set(CUDA_SRC
     ${PROJECT_SOURCE_DIR}/src/math/cuda/activation.cu
     ${PROJECT_SOURCE_DIR}/src/math/cuda/cnnfs_math.cu
     ${PROJECT_SOURCE_DIR}/src/math/cuda/matrix.cu
+    ${PROJECT_SOURCE_DIR}/src/math/cuda/metrics.cu
     ${PROJECT_SOURCE_DIR}/src/math/cuda/vector.cu
 )
 

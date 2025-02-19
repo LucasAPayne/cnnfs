@@ -44,9 +44,11 @@ void log_log(LogLevel level, const char* fmt, ...);
 #define LOG_POS "[" LOG_FILE_PATH ":" LOG_LINE_NUM "] in " LOG_FUNC_NAME ": "
 #define LOG_POS_ARGS __FILE__, __LINE__, __func__
 
+#define PASS_ARGS(...) , ##__VA_ARGS__
+
 #ifdef CNNFS_DEBUG
     #define ASSERT(expr, msg, ...) \
-        if(!(expr)) {log_fatal(LOG_POS msg, LOG_POS_ARGS ##__VA_ARGS__); getchar(); *(int *)0 = 0;}
+        if(!(expr)) {log_fatal(LOG_POS msg, LOG_POS_ARGS PASS_ARGS(__VA_ARGS__)); getchar(); *(int *)0 = 0;}
 #else
     // Define as cast to void to prevent unused expression warnings.
     #define ASSERT(expr, msg, ...) (void)(expr); (void)msg

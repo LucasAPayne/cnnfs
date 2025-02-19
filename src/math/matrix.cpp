@@ -448,25 +448,25 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
     {
         case Axis_Rows:
         {
-            ASSERT(scale.elements == m.cols,
-                "For a row-wise scale, the vector must have the same number of elements as the matrix has columns.");
+            ASSERT(scale.elements == m.rows,
+                "For a row-wise scale, the vector must have the same number of elements as the matrix has rows.");
 
             for (size row = 0; row < m.rows; ++row)
             {
                 for (size col = 0; col < m.cols; ++col)
-                    m(row, col) *= scale[col];
+                    m(row, col) *= scale[row];
             }
         } break;
 
         case Axis_Cols:
         {
             ASSERT(scale.elements == m.cols,
-                "For a column-wise scale, the vector must have the same number of elements as the matrix has rows.");
+                "For a column-wise scale, the vector must have the same number of elements as the matrix has cols.");
 
             for (size row = 0; row < m.rows; ++row)
             {
                 for (size col = 0; col < m.cols; ++col)
-                    m(row, col) *= scale[row];
+                    m(row, col) *= scale[col];
             }
         } break;
 

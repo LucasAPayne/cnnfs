@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 
+// TODO(lucas): Move metrics.{h,cpp} into math folder.
+// TODO(lucas): Make assertions more helpful by printing the offending data.
+
 // TODO(lucas): Use more optimized reductions.
 // https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf slide 35
 // TODO(lucas): Is it possible to make a general reduction for matrices that works across rows or columns?
@@ -61,7 +64,8 @@ int main(void)
     }
     time_block_end();
 
-    vec_to(&labels, Device_CPU);
+    vec_to(&labels, Device_GPU);
+    vec_to(&pred, Device_GPU);
     time_block_begin("Accuracy");
     f32 acc = accuracy_score(labels, pred);
     time_block_end();
