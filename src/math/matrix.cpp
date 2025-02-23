@@ -164,9 +164,11 @@ internal mat<f32> mat_rand_gauss_standard(size rows, size cols, Device device)
 template <typename T>
 internal void mat_set_row(mat<T> m, vec<T> data, size row)
 {
-    // To set a row, the vector must have the same number of elements as
-    // the matrix has columns.
-    ASSERT(m.cols == data.elements, "Mismatch in matrix columns and vector elements.\n");
+    ASSERT(m.cols == data.elements,
+           "Mismatch in matrix columns and vector elements (matrix columns: %llu, vector elements: %llu).\n",
+           m.cols, data.elements);
+    ASSERT(m.device == data.device, "Matrix and vector must be on the same device (matrix device: %hhu, vector device: %hhu).\n",
+           m.device, data.device);
 
     switch (m.device)
     {
@@ -185,9 +187,11 @@ internal void mat_set_row(mat<T> m, vec<T> data, size row)
 template <typename T>
 internal void mat_set_col(mat<T> m, vec<T> data, size col)
 {
-    // To set a column, the vector must have the same number of elements as
-    // the matrix has rows.
-    ASSERT(m.rows == data.elements, "Mismatch in matrix rows and vector elements.\n");
+    ASSERT(m.rows == data.elements,
+           "Mismatch in matrix rows and vector elements (matrix rows: %llu, vector elements: %llu).\n",
+           m.rows, data.elements);
+    ASSERT(m.device == data.device, "Matrix and vector must be on the same device (matrix device: %hhu, vector device: %hhu).\n",
+           m.device, data.device);
 
     switch (m.device)
     {
@@ -206,7 +210,7 @@ internal void mat_set_col(mat<T> m, vec<T> data, size col)
 template <typename T>
 vec<T> mat_get_row(mat<T> m, size row)
 {
-    ASSERT(row < m.rows, "Row out of bounds.\n");
+    ASSERT(row < m.rows, "Row out of bounds (max row: %llu, got: %llu).\n", m.rows-1, row);
 
     vec<T> result = {};
     result.elements = m.cols;
@@ -219,7 +223,7 @@ vec<T> mat_get_row(mat<T> m, size row)
 template <typename T>
 vec<T> mat_get_col(mat<T> m, size col)
 {
-    ASSERT(col < m.cols, "Column out of bounds.\n");
+    ASSERT(col < m.cols, "Column out of bounds (max column: %llu, got: %llu).\n", m.cols-1, col);
 
     vec<T> result = {};
     result.elements = m.rows;
@@ -232,7 +236,11 @@ vec<T> mat_get_col(mat<T> m, size col)
 template <typename T>
 internal void mat_set_row_range(mat<T> m, vec<T> data, size row, size row_offset)
 {
-    ASSERT(m.cols >= data.elements + row_offset, "Not enough columns in matrix after offset to accommodate vector.\n");
+    ASSERT(m.cols >= data.elements + row_offset,
+           "Not enough columns in matrix after offset to accommodate vector (max column: %llu, tried to set: %llu through %llu).\n",
+           m.cols-1, row_offset, row_offset + data.elements-1);
+    ASSERT(m.device == data.device, "Matrix and vector must be on the same device (matrix device: %hhu, vector device: %hhu).\n",
+           m.device, data.device);
 
     switch (m.device)
     {
@@ -251,7 +259,11 @@ internal void mat_set_row_range(mat<T> m, vec<T> data, size row, size row_offset
 template <typename T>
 internal void mat_set_col_range(mat<T> m, vec<T> data, size col, size col_offset)
 {
-    ASSERT(m.rows >= data.elements + col_offset, "Not enough rows in matrix after offset to accommodate vector.\n");
+    ASSERT(m.rows >= data.elements + col_offset,
+           "Not enough rows in matrix after offset to accommodate vector (max row: %llu, tried to set: %llu through %llu).\n",
+           m.rows-1, col_offset, col_offset + data.elements-1);
+    ASSERT(m.device == data.device, "Matrix and vector must be on the same device (matrix device: %hhu, vector device: %hhu).\n",
+           m.device, data.device);
 
     switch (m.device)
     {
@@ -333,9 +345,12 @@ internal void mat_print(mat<T> m)
 template <typename T>
 internal mat<T> mat_add(mat<T> a, mat<T> b, b32 in_place)
 {
-    ASSERT(a.rows == b.rows, "Matrix addition requires the matrices to be the same size.\n");
-    ASSERT(a.cols == b.cols, "Matrix addition requires the matrices to be the same size.\n");
-    ASSERT(a.device == b.device, "The matrices must be on the same device.\n");
+    ASSERT(a.rows == b.rows, "Matrix addition requires the matrices to be the same size (A rows: %llu, B rows: %llu).\n",
+           a.rows, b.rows);
+    ASSERT(a.cols == b.cols, "Matrix addition requires the matrices to be the same size (A columns: %llu, B columns: %llu).\n",
+           a.cols, b.cols);
+    ASSERT(a.device == b.device, "The matrices must be on the same device (A device: %hhu, B device: %hhu).\n",
+           a.device, b.device);
 
     mat<T> result = in_place ? a : mat_copy(a);
 
@@ -366,7 +381,8 @@ internal void mat_add_vec_cpu(mat<T> m, vec<T> v, Axis axis)
         case Axis_Rows:
         {
             ASSERT(v.elements == m.cols,
-                   "For a row-wise add, the vector must have the same number of elements as the matrix has columns.");
+                   "For a row-wise add, the vector must have the same number of elements as the matrix has columns "
+                   "(matrix columns: %llu, vector elements: %llu).\n", m.cols, v.elements);
 
             for (size row = 0; row < m.rows; ++row)
             {
@@ -378,7 +394,8 @@ internal void mat_add_vec_cpu(mat<T> m, vec<T> v, Axis axis)
         case Axis_Cols:
         {
             ASSERT(v.elements == m.rows,
-                   "For a column-wise add, the vector must have the same number of elements as the matrix has rows.");
+                   "For a column-wise add, the vector must have the same number of elements as the matrix has rows "
+                   "(matrix rows: %llu, vector elements: %llu).\n", m.rows, v.elements);
             
             for (size row = 0; row < m.rows; ++row)
             {
@@ -394,7 +411,9 @@ internal void mat_add_vec_cpu(mat<T> m, vec<T> v, Axis axis)
 template <typename T>
 internal mat<T> mat_add_vec(mat<T> m, vec<T> v, Axis axis, b32 in_place)
 {
-    ASSERT(m.device == v.device, "The matrix and vector must be on the same device.\n");
+    ASSERT(m.device == v.device,
+           "The matrix and vector must be on the same device (matrix device: %hhu, vector device: %hhu).\n",
+           m.device, v.device);
 
     mat<T> result = in_place ? m : mat_copy(m);
     switch (m.device)
@@ -449,7 +468,8 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
         case Axis_Rows:
         {
             ASSERT(scale.elements == m.rows,
-                "For a row-wise scale, the vector must have the same number of elements as the matrix has rows.");
+                "For a row-wise scale, the vector must have the same number of elements as the matrix has rows "
+                "(matrix rows: %llu, vector elements: %llu).\n", m.rows, scale.elements);
 
             for (size row = 0; row < m.rows; ++row)
             {
@@ -461,7 +481,8 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
         case Axis_Cols:
         {
             ASSERT(scale.elements == m.cols,
-                "For a column-wise scale, the vector must have the same number of elements as the matrix has cols.");
+                "For a column-wise scale, the vector must have the same number of elements as the matrix has cols "
+                "(matrix columns: %llu, vector elements: %llu).\n", m.cols, scale.elements);
 
             for (size row = 0; row < m.rows; ++row)
             {
@@ -477,7 +498,8 @@ internal void mat_scale_cpu(mat<T> m, vec<T> scale, Axis axis)
 template <typename T>
 internal mat<T> mat_scale(mat<T> m, vec<T> scale, Axis axis, b32 in_place)
 {
-    ASSERT(m.device == scale.device, "The matrix and vector must be on the same device.\n");
+    ASSERT(m.device == scale.device, "The matrix and vector must be on the same device "
+        "(matrix device: %hhu, vector device: %hhu).\n", m.device, scale.device);
 
     mat<T> result = in_place ? m : mat_copy(m);
     switch (result.device)
@@ -493,8 +515,11 @@ internal mat<T> mat_scale(mat<T> m, vec<T> scale, Axis axis, b32 in_place)
 template <typename T>
 internal mat<T> mat_mul(mat<T> a, mat<T> b)
 {
-    ASSERT(a.cols == b.rows, "For A*B to be valid, the number of columns in A must equal the number of rows in B.\n");
-    ASSERT(a.device == b.device, "The matrices must be on the same device.\n");
+    ASSERT(a.cols == b.rows,
+           "For A*B to be valid, the number of columns in A must equal the number of rows in B (A columns: %llu, B rows: %llu).\n",
+           a.cols, b.rows);
+    ASSERT(a.device == b.device, "The matrices must be on the same device (A device: %hhu, B device: %hhu).\n",
+           a.device, b.device);
 
     mat<T> result = {};
     switch (a.device)
@@ -527,9 +552,12 @@ internal mat<T> mat_mul(mat<T> a, mat<T> b)
 template <typename T>
 internal mat<T> mat_had(mat<T> a, mat<T> b, b32 in_place)
 {
-    ASSERT(a.rows == b.rows, "The Hadamard product requires the matrices to be the same size.\n");
-    ASSERT(a.cols == b.cols, "The Hadamard product requires the matrices to be the same size.\n");
-    ASSERT(a.device == b.device, "The matrices must be on the same device.\n");
+    ASSERT(a.rows == b.rows, "The Hadamard product requires the matrices to be the same size (A rows: %llu, B rows: %llu).\n",
+           a.rows, b.rows);
+    ASSERT(a.cols == b.cols, "The Hadamard product requires the matrices to be the same size (A columns: %llu, B columns: %llu).\n",
+           a.cols, b.cols);
+    ASSERT(a.device == b.device, "The matrices must be on the same device (A device: %hhu, B device: %hhu).\n",
+           a.device, b.device);
 
     mat<T> result = in_place ? a : mat_copy(a);
     switch (result.device)

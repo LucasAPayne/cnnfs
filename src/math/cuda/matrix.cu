@@ -399,15 +399,17 @@ void mat_add_vec_gpu(mat<T> m, vec<T> v, Axis axis)
         case Axis_Rows:
         {
             ASSERT(v.elements == m.cols,
-                "For a row-wise add, the vector must have the same number of elements as the matrix has rows.");
+                "For a row-wise add, the vector must have the same number of elements as the matrix has columns "
+                "(matrix columns: %llu, vector elements: %llu).\n", m.cols, v.elements);
 
             mat_add_vec_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v);
         } break;
         
         case Axis_Cols:
         {
-            ASSERT(v.elements == m.cols,
-                "For a column-wise add, the vector must have the same number of elements as the matrix has cols.");
+            ASSERT(v.elements == m.rows,
+                "For a column-wise add, the vector must have the same number of elements as the matrix has rows "
+                "(matrix rows: %llu, vector elements: %llu).\n", m.rows, v.elements);
 
             mat_add_vec_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v);
         } break;
@@ -432,7 +434,8 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
         case Axis_Rows:
         {
             ASSERT(scale.elements == m.rows,
-                "For a row-wise scale, the vector must have the same number of elements as the matrix has columns.");
+                "For a row-wise scale, the vector must have the same number of elements as the matrix has rows "
+                "(matrix rows: %llu, vector elements: %llu).\n", m.rows, scale.elements);
 
             mat_scale_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(m, scale);
         } break;
@@ -440,7 +443,8 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
         case Axis_Cols:
         {
             ASSERT(scale.elements == m.cols,
-                "For a column-wise scale, the vector must have the same number of elements as the matrix has rows.");
+                "For a column-wise scale, the vector must have the same number of elements as the matrix has cols "
+                "(matrix columns: %llu, vector elements: %llu).\n", m.cols, scale.elements);
 
             mat_scale_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, scale);
         } break;

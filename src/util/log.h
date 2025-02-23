@@ -51,5 +51,5 @@ void log_log(LogLevel level, const char* fmt, ...);
         if(!(expr)) {log_fatal(LOG_POS msg, LOG_POS_ARGS PASS_ARGS(__VA_ARGS__)); getchar(); *(int *)0 = 0;}
 #else
     // Define as cast to void to prevent unused expression warnings.
-    #define ASSERT(expr, msg, ...) (void)(expr); (void)msg
+    #define ASSERT(expr, msg, ...) if(!(expr)); log_fatal(LOG_POS msg, LOG_POS_ARGS PASS_ARGS(__VA_ARGS__));
 #endif

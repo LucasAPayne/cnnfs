@@ -2,8 +2,7 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Move metrics.{h,cpp} into math folder.
-// TODO(lucas): Make assertions more helpful by printing the offending data.
+// TODO(lucas): GPU inference
 
 // TODO(lucas): Use more optimized reductions.
 // https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf slide 35

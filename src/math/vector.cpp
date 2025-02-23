@@ -145,8 +145,11 @@ internal vec<f32> vec_rand_gauss_standard(size n, Device device)
 template <typename T>
 internal void vec_set_range(vec<T> v, vec<T> data, size offset)
 {
-    ASSERT(v.elements >= data.elements + offset, "Not enough elements in vector after offset to accommodate the new data.\n");
-    ASSERT(v.device == data.device, "The vectors must be on the same device.\n");
+    ASSERT(v.elements >= data.elements + offset,
+           "Not enough elements in vector after offset to accommodate the new data (max element: %llu, tried to set %llu through %llu).\n",
+           v.elements-1, offset, offset + data.elements-1);
+    ASSERT(v.device == data.device, "The vectors must be on the same device (v device: %hhu, data device: %hhu).\n",
+           v.device, data.device);
 
     switch (v.device)
     {
@@ -204,8 +207,11 @@ internal void vec_print(vec<T> v)
 template <typename T>
 internal vec<T> vec_add(vec<T> a, vec<T> b, b32 in_place)
 {
-    ASSERT(a.elements == b.elements, "Vector addition requires the vectors to be the same size.\n");
-    ASSERT(a.device == b.device, "The vectors must be on the same device.\n");
+    ASSERT(a.elements == b.elements,
+           "Vector addition requires the vectors to be the same size (a elements: %llu, b elements: %llu).\n",
+           a.elements, b.elements);
+    ASSERT(a.device == b.device, "The vectors must be on the same device (a device: %hhu, b device %hhu).\n",
+           a.device, b.device);
 
     vec<T> result = in_place ? a : vec_copy(a);
 
@@ -280,8 +286,11 @@ internal vec<T> vec_reciprocal(vec<T> v, b32 in_place)
 template <typename T>
 internal vec<T> vec_had(vec<T> a, vec<T> b, b32 in_place)
 {
-    ASSERT(a.elements == b.elements, "The Hadamard product requires the vectors to be the same size.\n");
-    ASSERT(a.device == b.device, "The vectors must be on the same device.\n");
+    ASSERT(a.elements == b.elements,
+           "The Hadamard product requires the vectors to be the same size (a elements: %llu, b elements: %llu).\n",
+           a.elements, b.elements);
+    ASSERT(a.device == b.device, "The vectors must be on the same device (a device: %hhu, b device: %hhu).\n",
+           a.device, b.device);
 
     vec<T> result = in_place ? a : vec_copy(a);
 

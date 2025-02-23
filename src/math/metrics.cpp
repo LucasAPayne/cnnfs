@@ -4,7 +4,9 @@
 
 f32 accuracy_score(vec<u32> y_true, vec<u32> y_pred)
 {
-    ASSERT(y_true.device == y_pred.device, "True and predicted labels must be on the same device.");
+    ASSERT(y_true.device == y_pred.device,
+           "True and predicted labels must be on the same device (y_true device: %hhu, y_pred device: %hhu).",
+           y_true.device, y_pred.device);
     ASSERT(y_true.elements == y_pred.elements,
            "Mismatch in number of true and predicted elements (True: %llu, Pred: %llu).\n", y_true.elements, y_pred.elements);
 
