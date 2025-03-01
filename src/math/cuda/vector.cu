@@ -134,9 +134,10 @@ __global__ internal void vec_sum_kernel(vec<T> v, T* out)
 
         if (idx < blockDim.x)
             shared_mem[idx] += shared_mem[idx + s];
+
+        __syncthreads();
     }
 
-    __syncthreads();
 
     // Write block result to global memory.
     if (threadIdx.x == 0)

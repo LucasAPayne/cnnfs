@@ -1,6 +1,6 @@
 # CNNFS
 
-CNNFS implements neural networks from scratch in C++, following the example of the _Neural Networks from Scratch in Python_ [book](https://nnfs.io) and [repo](https://github.com/Sentdex/nnfs). Currently, the goal of this repo is to reach feature parity with the book and repo, and work may continue beyond that.
+CNNFS implements neural networks from scratch in C++, following the example of the _Neural Networks from Scratch in Python_ [book](https://nnfs.io) and [repo](https://github.com/Sentdex/nnfs).
 
 ## Features
 
@@ -8,7 +8,7 @@ CNNFS implements neural networks from scratch in C++, following the example of t
 - Matrix/vector math
 - CUDA support
 - RNG with the uniform and Gaussian distributions
-- Multiclass toy dataset generation (spiral)
+- Multi-class toy dataset generation (spiral)
 
 ## How to Build
 

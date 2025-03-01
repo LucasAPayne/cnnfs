@@ -66,6 +66,16 @@ __global__ internal void mat_copy_kernel(mat<T> result, mat<T> m)
 }
 
 template <typename T>
+__global__ internal void transpose_kernel(mat<T> m, mat<T> result)
+{
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    if (row >= m.rows || col >= m.cols) return;
+
+    result.data[col*result.cols + row] = m.data[row*m.cols + col];
+}
+
+template <typename T>
 __global__ internal void mat_set_row_kernel(mat<T> m, vec<T> v, size row)
 {
     int col = threadIdx.x + blockIdx.x*blockDim.x;
@@ -176,7 +186,7 @@ __global__ internal void mat_sum_rows_kernel(mat<T> m, vec<T> result)
 {
     __shared__ T shared_mem[256];
     int row = threadIdx.y + blockIdx.y*blockDim.y;
-    int col = threadIdx.x + blockIdx.x * blockDim.x;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
     if (row >= m.rows || col >= m.cols) return;
 
     size i = m.cols*row + col;
@@ -200,7 +210,7 @@ __global__ internal void mat_sum_cols_kernel(mat<T> m, vec<T> result)
 {
     __shared__ T shared_mem[256];
     int row = threadIdx.y + blockIdx.y*blockDim.y;
-    int col = threadIdx.x + blockIdx.x * blockDim.x;
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
     if (row >= m.rows || col >= m.cols) return;
 
     size i = m.cols*row + col;
@@ -355,6 +365,20 @@ mat<T> mat_copy_gpu(mat<T> m)
 }
 
 template <typename T>
+mat<T> transpose_gpu(mat<T> m)
+{
+    ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
+    mat<T> result = mat_zeros_gpu<T>(m.cols, m.rows);
+    transpose_kernel<<<layout.grid_dim, layout.block_dim>>>(m, result);
+    
+    // mat_free_data_gpu(m);
+    m.data = result.data;
+    m.rows = result.rows;
+    m.cols = result.cols;
+    return m;
+}
+
+template <typename T>
 void mat_set_row_gpu(mat<T> m, vec<T> v, size row)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
@@ -501,6 +525,7 @@ vec<T> mat_sum_gpu(mat<T> m, Axis axis)
 #define MAT_ZEROS_GPU(T) INST_TEMPLATE(mat_zeros_gpu, mat<T>, T, (size rows, size cols))
 #define MAT_FULL_GPU(T) INST_TEMPLATE(mat_full_gpu, mat<T>, T, (size rows, size cols, T fill_value))
 #define MAT_COPY_GPU(T) INST_TEMPLATE(mat_copy_gpu, mat<T>, T, (mat<T> m))
+#define TRANSPOSE_GPU(T) INST_TEMPLATE(transpose_gpu, mat<T>, T, (mat<T> m))
 #define MAT_SET_ROW_GPU(T) INST_TEMPLATE(mat_set_row_gpu, void, T, (mat<T> m, vec<T> data, size row))
 #define MAT_SET_COL_GPU(T) INST_TEMPLATE(mat_set_col_gpu, void, T, (mat<T> m, vec<T> data, size col))
 #define MAT_SET_ROW_RANGE_GPU(T) INST_TEMPLATE(mat_set_row_range_gpu, void, T, (mat<T> m, vec<T> data, size row, size row_offset))
@@ -518,6 +543,7 @@ INST_ALL_TYPES(MAT_FREE_DATA_GPU)
 INST_ALL_TYPES(MAT_ZEROS_GPU)
 INST_ALL_TYPES(MAT_FULL_GPU)
 INST_ALL_TYPES(MAT_COPY_GPU)
+INST_ALL_TYPES(TRANSPOSE_GPU)
 INST_ALL_TYPES(MAT_SET_ROW_GPU)
 INST_ALL_TYPES(MAT_SET_COL_GPU)
 INST_ALL_TYPES(MAT_SET_ROW_RANGE_GPU)
@@ -535,6 +561,7 @@ INST_ALL_TYPES(MAT_SUM_GPU)
 #undef MAT_ZEROS_GPU
 #undef MAT_FULL_GPU
 #undef MAT_COPY_GPU
+#undef TRANSPOSE_GPU
 #undef MAT_SET_ROW_GPU
 #undef MAT_SET_COL_GPU
 #undef MAT_SET_ROW_RANGE_GPU

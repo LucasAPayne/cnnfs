@@ -17,3 +17,7 @@ void exp_vec_gpu(vec<f64> v);
 
 void exp_mat_gpu(mat<f32> m);
 void exp_mat_gpu(mat<f64> m);
+
+u32 argmax_gpu(vec<f32> v);
+
+vec<u32> argmax_gpu(mat<f32> m, Axis axis);

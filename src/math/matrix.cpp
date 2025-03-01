@@ -88,6 +88,53 @@ internal mat<T> mat_copy(mat<T> m)
     return result;
 }
 
+template <typename T>
+internal mat<T> transpose(mat<T> m, b32 in_place)
+{
+    mat<T> result = in_place ? m : mat_copy(m);
+
+    switch(result.device)
+    {
+        case Device_CPU:
+        {
+            // TODO(lucas): Current approach is cycle-based. SIMD will require a different algorithm.
+            size elements = result.rows*result.cols;
+            byte* visited = (byte*)calloc(elements, sizeof(byte));
+
+            for (size start = 0; start < elements; ++start)
+            {
+                if (visited[start]) continue;
+
+                size current = start;
+                f32 prev_value = result.data[start];
+
+                do
+                {
+                    size next = (current % result.cols) * result.rows + (current / result.cols);
+                    f32 temp = result.data[next];
+
+                    result.data[next] = prev_value;
+                    visited[current] = 1;
+
+                    prev_value = temp;
+                    current = next;
+                } while (current != start);
+            }
+            free(visited);
+
+            size temp = result.rows;
+            result.rows = result.cols;
+            result.cols = temp;
+        } break;
+
+        case Device_GPU: result = transpose_gpu(result); break;
+
+        default: log_invalid_device(m.device);
+    }
+
+    return result;
+}
+
 internal mat<f32> mat_rand_uniform(size rows, size cols, f32 min, f32 max, Device device)
 {
     mat<f32> result ={};

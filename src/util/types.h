@@ -29,4 +29,4 @@ typedef ptrdiff_t size;
 typedef float f32;
 typedef double f64;
 
-typedef unsigned char ubyte;
+typedef unsigned char byte;

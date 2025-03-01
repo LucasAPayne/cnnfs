@@ -114,6 +114,9 @@ internal mat<T> mat_full(size rows, size cols, T fill_value, Device device=Devic
 template <typename T>
 internal mat<T> mat_copy(mat<T> m);
 
+template <typename T>
+internal mat<T> transpose(mat<T> m, b32 in_place=true);
+
 internal mat<f32> mat_rand_uniform(size rows, size cols, f32 min, f32 max, Device device=Device_CPU);
 internal mat<f32> mat_rand_gauss(size rows, size cols, f32 mean, f32 std_dev, Device device=Device_CPU);
 internal mat<f32> mat_rand_gauss_standard(size rows, size cols, Device device=Device_CPU);
