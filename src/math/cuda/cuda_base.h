@@ -35,19 +35,13 @@ inline ThreadLayout calc_thread_dim(size elements, int block_size=256)
 #define cuda_call(ans) { gpu_assert((ans), __FILE__, __LINE__); }
 inline void gpu_assert(cudaError_t code, const char *file, int line, bool abort=true)
 {
-    if (code != cudaSuccess) 
+    if (code != cudaSuccess)
     {
         fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
         getchar();
         if (abort)
             exit(code);
     }
-}
-
-inline void sync_kernel(void)
-{
-    cuda_call(cudaGetLastError());
-    cuda_call(cudaDeviceSynchronize());
 }
 
 // NOTE(lucas): Function templates won't be compiled without specific instantiation for each type.
@@ -66,4 +60,4 @@ inline void sync_kernel(void)
     func_macro(i32) \
     func_macro(i64) \
     func_macro(f32) \
-    func_macro(f64) 
+    func_macro(f64)

@@ -27,7 +27,7 @@ struct vec
 
     inline T& operator[](size i)
     {
-        ASSERT(i < elements, "Index out of range (max: %llu, got: %llu).\n", elements-1, i);
+        ASSERTF(i < elements, "Index out of range (max: %llu, got: %llu).", elements-1, i);
         return data[i];
     }
 };

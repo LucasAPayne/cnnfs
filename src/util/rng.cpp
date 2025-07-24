@@ -111,7 +111,7 @@ internal void rand_seed(u64 seed)
  */
 internal f32 rand_f32_uniform(f32 min, f32 max)
 {
-    ASSERT(max > min, "The maximum value must be greater than the minimum value.\n");
+    ASSERT(max > min, "The maximum value must be greater than the minimum value.");
     f32 result = (f32)pcg32_rand() / (f32)UINT32_MAX;
     result = min + result * (max - min);
     return result;
@@ -126,7 +126,7 @@ internal f32 rand_f32_gauss(f32 mean, f32 std_dev)
      * This algorithm works by randomly picking points (x,y) in the square -1 < x < 1, -1 < y < 1
      * until 0 < s = x^2 + y^2 < 1. To put the points into the normal distribution,
      * they are multiplied by sqrt(-2*ln(s)/s).
-     * 
+     *
      * Ziggurat is probably a better algorithm to use here, but it is more complex. May be revisited later.
      * This algorithm generates random Gaussian numbers in pairs, so it keeps track of whether it has
      * already generated the next one and what the value of it is.

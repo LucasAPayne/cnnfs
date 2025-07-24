@@ -35,9 +35,9 @@ void log_log(LogLevel level, const char* fmt, ...);
 #define log_success(...) log_log(LOG_SUCCESS, __VA_ARGS__)
 #define log_failure(...) log_log(LOG_FAILURE, __VA_ARGS__)
 
-#define LOG_FILE_PATH YELLOW"%s"COLOR_RESET
-#define LOG_FUNC_NAME CYAN"%s"COLOR_RESET
-#define LOG_LINE_NUM BWHITE"%d"COLOR_RESET
+#define LOG_FILE_PATH YELLOW"%s" COLOR_RESET
+#define LOG_FUNC_NAME CYAN"%s" COLOR_RESET
+#define LOG_LINE_NUM BWHITE"%d" COLOR_RESET
 
 // To report the file, line number, and function name where a log occurs, use these macros, e.g.,
 // log_error(LOG_POS "Error number: %d", LOG_POS_ARGS, number);
@@ -48,8 +48,10 @@ void log_log(LogLevel level, const char* fmt, ...);
 
 #ifdef CNNFS_DEBUG
     #define ASSERT(expr, msg, ...) \
-        if(!(expr)) {log_fatal(LOG_POS msg, LOG_POS_ARGS PASS_ARGS(__VA_ARGS__)); getchar(); *(int *)0 = 0;}
+        if(!(expr)) {log_fatal(LOG_POS msg, LOG_POS_ARGS); *(int *)0 = 0;}
+    #define ASSERTF(expr, msg, ...) \
+        if(!(expr)) {log_fatal(LOG_POS msg, LOG_POS_ARGS, __VA_ARGS__); *(int *)0 = 0;}
 #else
-    // Define as cast to void to prevent unused expression warnings.
-    #define ASSERT(expr, msg, ...) if(!(expr)); log_fatal(LOG_POS msg, LOG_POS_ARGS PASS_ARGS(__VA_ARGS__));
+    #define ASSERT(expr, msg, ...)
+    #define ASSERTF(expr, msg, ...)
 #endif

@@ -35,7 +35,7 @@ vec<f64> linspace(f64 x1, f64 x2, size n, Device device)
 
             for (size i = 0; i < n; ++i)
                 result[i] = x1 + ((f64)i * dx);
-            
+
             return result;
         } break;
 
@@ -100,7 +100,7 @@ vec<f32> cos_vec(vec<f32> v, b32 in_place)
 
         default: log_invalid_device(result.device); break;
     }
-    
+
     return result;
 }
 

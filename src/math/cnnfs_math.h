@@ -50,10 +50,8 @@ vec<f64> exp_vec(vec<f64> v, b32 in_place=true);
 mat<f32> exp_mat(mat<f32> m, b32 in_place=true);
 mat<f64> exp_mat(mat<f64> m, b32 in_place=true);
 
-// TODO(lucas): Templatize argmax to allow using any numeric type (requires implementing atomicMax in CUDA for all types).
 // Find the index of the max value in a vector
 u32 argmax(vec<f32> v);
 
 // Find the indices of the max values in each row or each column of a matrix
-// template <typename T>
 vec<u32> argmax(mat<f32> m, Axis axis=Axis_Rows);

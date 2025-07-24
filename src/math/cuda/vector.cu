@@ -10,7 +10,7 @@ __global__ internal void vec_full_kernel(vec<T> result, T fill_value)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= result.elements) return;
-    
+
     result.data[i] = fill_value;
 }
 
@@ -61,7 +61,7 @@ __global__ internal void vec_copy_kernel(vec<T> result, vec<T> v)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= v.elements) return;
-    
+
     result.data[i] = v.data[i];
 }
 
@@ -70,7 +70,7 @@ __global__ internal void vec_set_range_kernel(vec<T> v, vec<T> data, size offset
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= data.elements) return;
-    
+
     v.data[offset + i] = data.data[i];
 }
 
@@ -79,7 +79,7 @@ __global__ internal void vec_add_kernel(vec<T> a, vec<T> b)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= a.elements) return;
-    
+
     a.data[i] += b.data[i];
 }
 
@@ -88,7 +88,7 @@ __global__ internal void vec_scale_kernel(vec<T> v, T c)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= v.elements) return;
-    
+
     v.data[i] *= c;
 }
 
@@ -97,7 +97,7 @@ __global__ internal void vec_scale_inv_kernel(vec<T> v, T c)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= v.elements) return;
-    
+
     if (v.data[i] != 0)
         v.data[i] = (T)c / v.data[i];
 }
@@ -107,7 +107,7 @@ __global__ internal void vec_had_kernel(vec<T> a, vec<T> b)
 {
     int i = threadIdx.x + blockIdx.x*blockDim.x;
     if (i >= a.elements) return;
-    
+
     a.data[i] *= b.data[i];
 }
 
@@ -192,7 +192,7 @@ vec<T> vec_zeros_gpu(size elements)
     cuda_call(cudaMalloc(&result.data, mem));
     cuda_call(cudaMemset(result.data, 0, mem));
 
-    ASSERT(result.data, "Vector GPU allocation failed.\n");
+    ASSERT(result.data, "Vector GPU allocation failed.");
 
     return result;
 }
@@ -203,6 +203,7 @@ vec<T> vec_full_gpu(size elements, T fill_value)
     ThreadLayout layout = calc_thread_dim(elements);
     vec<T> result = vec_zeros_gpu<T>(elements);
     vec_full_kernel<<<layout.grid_dim, layout.block_dim>>>(result, fill_value);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -212,6 +213,7 @@ vec<f32> vec_rand_uniform_gpu(size n, f32 min, f32 max)
     vec<f32> result = vec_zeros_gpu<f32>(n);
     ThreadLayout layout = calc_thread_dim(n);
     vec_rand_uniform_kernel<<<layout.grid_dim, layout.block_dim>>>(result, min, max, gpu_rng_global.seed);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -221,6 +223,7 @@ vec<f32> vec_rand_gauss_gpu(size n, f32 mean, f32 std_dev)
     vec<f32> result = vec_zeros_gpu<f32>(n);
     ThreadLayout layout = calc_thread_dim(n);
     vec_rand_gauss_kernel<<<layout.grid_dim, layout.block_dim>>>(result, mean, std_dev, gpu_rng_global.seed);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -230,6 +233,7 @@ vec<f32> vec_rand_gauss_standard_gpu(size n)
     vec<f32> result = vec_zeros_gpu<f32>(n);
     ThreadLayout layout = calc_thread_dim(n);
     vec_rand_gauss_standard_kernel<<<layout.grid_dim, layout.block_dim>>>(result, gpu_rng_global.seed);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -240,6 +244,7 @@ vec<T> vec_copy_gpu(vec<T> v)
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec<T> result = vec_zeros_gpu<T>(v.elements);
     vec_copy_kernel<<<layout.grid_dim, layout.block_dim>>>(result, v);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -249,6 +254,7 @@ void vec_set_range_gpu(vec<T> v, vec<T> data, size offset)
 {
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_set_range_kernel<<<layout.grid_dim, layout.block_dim>>>(v, data, offset);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -256,6 +262,7 @@ void vec_add_gpu(vec<T> a, vec<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.elements);
     vec_add_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -263,6 +270,7 @@ void vec_scale_gpu(vec<T> v, T c)
 {
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_scale_kernel<<<layout.grid_dim, layout.block_dim>>>(v, c);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -270,6 +278,7 @@ vec<T> vec_scale_inv_gpu(vec<T> v, T c)
 {
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_scale_inv_kernel<<<layout.grid_dim, layout.block_dim>>>(v, c);
+    cuda_call(cudaGetLastError());
     return v;
 }
 
@@ -278,6 +287,7 @@ void vec_had_gpu(vec<T> a, vec<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.elements);
     vec_had_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -289,7 +299,8 @@ T vec_sum_gpu(vec<T> v)
 
     ThreadLayout layout = calc_thread_dim(v.elements);
     vec_sum_kernel<<<layout.grid_dim, layout.block_dim>>>(v, out);
-    
+    cuda_call(cudaGetLastError());
+
     T result;
     cuda_call(cudaMemcpy(&result, out, sizeof(T), cudaMemcpyDeviceToHost));
     cuda_call(cudaFree(out));

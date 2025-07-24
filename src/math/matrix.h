@@ -30,8 +30,8 @@ struct mat
      */
     inline T& operator()(size row, size col)
     {
-        ASSERT(row < rows, "Row out of bounds (max row: %llu, got: %llu).\n", rows-1, row);
-        ASSERT(col < cols, "Column out of bounds (max column: %llu, got: %llu).\n", cols-1, col);
+        ASSERTF(row < rows, "Row out of bounds (max row: %llu, got: %llu).", rows-1, row);
+        ASSERTF(col < cols, "Column out of bounds (max column: %llu, got: %llu).", cols-1, col);
         return data[row*cols + col];
     }
 };

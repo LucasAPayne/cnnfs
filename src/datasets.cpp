@@ -30,7 +30,7 @@ void create_spiral_data(size samples, u32 classes, mat<f32>* out_data, vec<u32>*
         vec<f32> sample_y = vec_had(cos_vec(t_range), r);
 
         vec<u32> labels = vec_full<u32>(samples, i, device);
-        
+
         mat_set_col_range(*out_data, sample_x, 0, offset);
         mat_set_col_range(*out_data, sample_y, 1, offset);
         vec_set_range(*out_labels, labels, offset);

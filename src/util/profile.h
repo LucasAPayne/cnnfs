@@ -60,7 +60,7 @@ extern u32 global_profiler_parent;
 inline void profile_block_begin(const char* name, u32 anchor_index)
 {
     global_profiler.anchor_index = anchor_index;
-    
+
     ProfileAnchor* anchor = global_profiler_anchors + global_profiler.anchor_index;
     anchor->parent_index = global_profiler_parent;
     anchor->label = name;

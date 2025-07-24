@@ -110,7 +110,7 @@ __global__ internal void mat_set_col_range_kernel(mat<T> m, vec<T> v, size col, 
 {
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     if (row >= v.elements) return;
-    
+
     size i = m.cols*(col_offset + row) + col;
     m.data[i] = v.data[row];
 }
@@ -121,7 +121,7 @@ __global__ internal void mat_add_kernel(mat<T> a, mat<T> b)
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
     if (row >= a.rows || col >= b.cols) return;
-    
+
     size i = a.cols*row + col;
     a.data[i] += b.data[i];
 }
@@ -176,7 +176,7 @@ __global__ internal void mat_scale_kernel(mat<T> m, T value)
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
     if (row >= m.rows || col >= m.cols) return;
-    
+
     size i = m.cols*row + col;
     m.data[i] *= value;
 }
@@ -251,7 +251,7 @@ __global__ internal void mat_had_kernel(mat<T> a, mat<T> b)
     int row = threadIdx.y + blockIdx.y*blockDim.y;
     int col = threadIdx.x + blockIdx.x*blockDim.x;
     if (row >= a.rows || col >= b.cols) return;
-    
+
     size i = a.cols*row + col;
     a.data[i] *= b.data[i];
 }
@@ -312,7 +312,7 @@ mat<T> mat_zeros_gpu(size rows, size cols)
     cuda_call(cudaMalloc(&result.data, mem));
     cuda_call(cudaMemset(result.data, 0, mem));
 
-    ASSERT(result.data, "GPU matrix allocation failed.\n");
+    ASSERT(result.data, "GPU matrix allocation failed.");
 
     return result;
 }
@@ -323,6 +323,7 @@ mat<T> mat_full_gpu(size rows, size cols, T fill_value)
     mat<T> result = mat_zeros_gpu<T>(rows, cols);
     ThreadLayout layout = calc_thread_dim(rows, cols);
     mat_full_kernel<<<layout.grid_dim, layout.block_dim>>>(result, fill_value);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -332,6 +333,7 @@ mat<f32> mat_rand_uniform_gpu(size rows, size cols, f32 min, f32 max)
     mat<f32> result = mat_zeros_gpu<f32>(rows, cols);
     ThreadLayout layout = calc_thread_dim(rows, cols);
     mat_rand_uniform_kernel<<<layout.grid_dim, layout.block_dim>>>(result, min, max, gpu_rng_global.seed);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -341,6 +343,7 @@ mat<f32> mat_rand_gauss_gpu(size rows, size cols, f32 mean, f32 std_dev)
     mat<f32> result = mat_zeros_gpu<f32>(rows, cols);
     ThreadLayout layout = calc_thread_dim(rows, cols);
     mat_rand_gauss_kernel<<<layout.grid_dim, layout.block_dim>>>(result, mean, std_dev, gpu_rng_global.seed);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -350,6 +353,7 @@ mat<f32> mat_rand_gauss_standard_gpu(size rows, size cols)
     mat<f32> result = mat_zeros_gpu<f32>(rows, cols);
     ThreadLayout layout = calc_thread_dim(rows, cols);
     mat_rand_gauss_standard_kernel<<<layout.grid_dim, layout.block_dim>>>(result, gpu_rng_global.seed);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -360,6 +364,7 @@ mat<T> mat_copy_gpu(mat<T> m)
     mat<T> result = mat_zeros_gpu<T>(m.rows, m.cols);
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_copy_kernel<<<layout.grid_dim, layout.block_dim>>>(result, m);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -370,8 +375,8 @@ mat<T> transpose_gpu(mat<T> m)
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat<T> result = mat_zeros_gpu<T>(m.cols, m.rows);
     transpose_kernel<<<layout.grid_dim, layout.block_dim>>>(m, result);
-    
-    // mat_free_data_gpu(m);
+    cuda_call(cudaGetLastError());
+
     m.data = result.data;
     m.rows = result.rows;
     m.cols = result.cols;
@@ -383,6 +388,7 @@ void mat_set_row_gpu(mat<T> m, vec<T> v, size row)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_set_row_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v, row);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -390,6 +396,7 @@ void mat_set_col_gpu(mat<T> m, vec<T> v, size col)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_set_col_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v, col);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -397,6 +404,7 @@ void mat_set_row_range_gpu(mat<T> m, vec<T> v, size row, size row_offset)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_set_row_range_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v, row, row_offset);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -404,6 +412,7 @@ void mat_set_col_range_gpu(mat<T> m, vec<T> v, size col, size col_offset)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_set_col_range_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v, col, col_offset);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -411,6 +420,7 @@ void mat_add_gpu(mat<T> a, mat<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.rows, a.cols);
     mat_add_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -422,22 +432,24 @@ void mat_add_vec_gpu(mat<T> m, vec<T> v, Axis axis)
     {
         case Axis_Rows:
         {
-            ASSERT(v.elements == m.cols,
-                "For a row-wise add, the vector must have the same number of elements as the matrix has columns "
-                "(matrix columns: %llu, vector elements: %llu).\n", m.cols, v.elements);
+            ASSERTF(v.elements == m.cols,
+                    "For a row-wise add, the vector must have the same number of elements as the matrix has columns "
+                    "(matrix columns: %llu, vector elements: %llu).", m.cols, v.elements);
 
             mat_add_vec_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v);
+            cuda_call(cudaGetLastError());
         } break;
-        
+
         case Axis_Cols:
         {
-            ASSERT(v.elements == m.rows,
-                "For a column-wise add, the vector must have the same number of elements as the matrix has rows "
-                "(matrix rows: %llu, vector elements: %llu).\n", m.rows, v.elements);
+            ASSERTF(v.elements == m.rows,
+                    "For a column-wise add, the vector must have the same number of elements as the matrix has rows "
+                    "(matrix rows: %llu, vector elements: %llu).", m.rows, v.elements);
 
             mat_add_vec_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, v);
+            cuda_call(cudaGetLastError());
         } break;
-        
+
         default: log_invalid_axis(axis); break;
     }
 }
@@ -447,6 +459,7 @@ void mat_scale_gpu(mat<T> m, T value)
 {
     ThreadLayout layout = calc_thread_dim(m.rows, m.cols);
     mat_scale_kernel<<<layout.grid_dim, layout.block_dim>>>(m, value);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -457,20 +470,22 @@ void mat_scale_gpu(mat<T> m, vec<T> scale, Axis axis)
     {
         case Axis_Rows:
         {
-            ASSERT(scale.elements == m.rows,
-                "For a row-wise scale, the vector must have the same number of elements as the matrix has rows "
-                "(matrix rows: %llu, vector elements: %llu).\n", m.rows, scale.elements);
+            ASSERTF(scale.elements == m.rows,
+                    "For a row-wise scale, the vector must have the same number of elements as the matrix has rows "
+                    "(matrix rows: %llu, vector elements: %llu).", m.rows, scale.elements);
 
             mat_scale_rows_kernel<<<layout.grid_dim, layout.block_dim>>>(m, scale);
+            cuda_call(cudaGetLastError());
         } break;
 
         case Axis_Cols:
         {
-            ASSERT(scale.elements == m.cols,
-                "For a column-wise scale, the vector must have the same number of elements as the matrix has cols "
-                "(matrix columns: %llu, vector elements: %llu).\n", m.cols, scale.elements);
+            ASSERTF(scale.elements == m.cols,
+                    "For a column-wise scale, the vector must have the same number of elements as the matrix has cols "
+                    "(matrix columns: %llu, vector elements: %llu).", m.cols, scale.elements);
 
             mat_scale_cols_kernel<<<layout.grid_dim, layout.block_dim>>>(m, scale);
+            cuda_call(cudaGetLastError());
         } break;
 
         default: log_invalid_axis(axis); break;
@@ -483,6 +498,7 @@ mat<T> mat_mul_gpu(mat<T> a, mat<T> b)
     mat<T> result = mat_zeros_gpu<T>(a.rows, b.cols);
     ThreadLayout layout = calc_thread_dim(a.rows, b.cols);
     mat_mul_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b, result);
+    cuda_call(cudaGetLastError());
 
     return result;
 }
@@ -492,6 +508,7 @@ void mat_had_gpu(mat<T> a, mat<T> b)
 {
     ThreadLayout layout = calc_thread_dim(a.rows, a.cols);
     mat_had_kernel<<<layout.grid_dim, layout.block_dim>>>(a, b);
+    cuda_call(cudaGetLastError());
 }
 
 template <typename T>
@@ -506,12 +523,14 @@ vec<T> mat_sum_gpu(mat<T> m, Axis axis)
         {
             result = vec_zeros_gpu<T>(m.rows);
             mat_sum_rows_kernel<<<layout.grid_dim, layout.block_dim, shared_mem_size>>>(m, result);
+            cuda_call(cudaGetLastError());
         } break;
 
         case Axis_Cols:
         {
             result = vec_zeros_gpu<T>(m.cols);
             mat_sum_cols_kernel<<<layout.grid_dim, layout.block_dim, shared_mem_size>>>(m, result);
+            cuda_call(cudaGetLastError());
         } break;
 
         default: log_invalid_axis(axis); break;
