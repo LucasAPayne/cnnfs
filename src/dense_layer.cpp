@@ -6,7 +6,6 @@ DenseLayer dense_layer_init(size inputs, size neurons, ActivationType activation
     DenseLayer layer = {0};
 
     layer.weights = mat_rand_gauss_standard(inputs, neurons, device);
-    mat_to(&layer.weights, device);
     layer.weights *= 0.01f;
     layer.biases = vec_zeros<f32>(neurons, device);
     layer.activation = activation;

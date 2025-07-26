@@ -21,8 +21,8 @@ struct vec
 {
     static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
                   "Type must be integral or floating-point.");
-    size elements;
     T* data;
+    size elements;
     Device device;
 
     inline T& operator[](size i)

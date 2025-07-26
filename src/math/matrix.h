@@ -18,9 +18,9 @@ struct mat
 {
     static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
                   "Type must be integral or floating-point.");
+    T* data;
     size rows;
     size cols;
-    T* data;
     Device device;
 
     /* NOTE(lucas): The () operator is used over the [] operator because [] only accepts a single value.

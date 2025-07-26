@@ -215,7 +215,6 @@ __global__ internal void mat_sum_cols_kernel(mat<T> m, vec<T> result)
 
     size i = m.cols*row + col;
     int tid = threadIdx.x;
-    T sum = 0;
     shared_mem[tid] = m.data[i];
     __syncthreads();
 
