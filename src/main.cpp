@@ -2,11 +2,6 @@
 
 #include <stdio.h>
 
-// TODO(lucas): Switch to growable arenas and get rid of individual vec/matrix allocations.
-// TODO(lucas): Use scratch space for each pass over the neural network,
-// or pre-allocate the memory for each output and have an option for multiplication to take in allocated memory.
-// TODO(lucas): In softmax activation, sum vector can be popped (freed) after scaling input
-
 int main(void)
 {
     profiler_begin();

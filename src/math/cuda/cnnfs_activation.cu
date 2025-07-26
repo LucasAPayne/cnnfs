@@ -1,4 +1,4 @@
-#include "math/cuda/activation_cuda.h"
+#include "math/cuda/cnnfs_activation_cuda.h"
 #include "cuda_base.h"
 #include "cnnfs_math_cuda.h"
 #include "vector_cuda.h"

@@ -1,5 +1,5 @@
-#include "activation.h"
-#include "math/cuda/activation_cuda.h"
+#include "cnnfs_activation.h"
+#include "math/cuda/cnnfs_activation_cuda.h"
 #include "cnnfs_math.h"
 
 #include "profile.h"

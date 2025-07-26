@@ -1,4 +1,4 @@
-#include "activation.cu"
+#include "cnnfs_activation.cu"
 #include "cnnfs_math.cu"
 #include "matrix.cu"
 #include "metrics.cu"

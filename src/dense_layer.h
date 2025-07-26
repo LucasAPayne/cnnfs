@@ -1,6 +1,6 @@
 #pragma once
 
-#include "activation.h"
+#include "cnnfs_activation.h"
 #include "math/cnnfs_math.h"
 
 // Dense, or fully-connected, layer, where each neuron in the layer
