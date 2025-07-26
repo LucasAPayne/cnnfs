@@ -14,13 +14,19 @@ CNNFS implements neural networks from scratch in C++, following the example of t
 
 This repo has so far only been tested on Windows using the MSVC compiler. First, clone the repository with
 
-    git clone https://github.com/LucasAPayne/cnnfs.git
+```bat
+git clone https://github.com/LucasAPayne/cnnfs.git
+```
 
 To build and run the project, simply navigate to the project directory and run
 
-    build
-    run
+```bat
+build
+run
+```
 
 If the project is run without the batch file, it should be run like the following:
 
-    start ../build/cnnfs.exe
+```bat
+start build/cnnfs.exe
+```
