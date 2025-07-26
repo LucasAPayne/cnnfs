@@ -1,15 +1,22 @@
 #pragma once
 
+#include "cnnfs_activation.h"
 #include "math/cnnfs_math.h"
 
 // Dense, or fully-connected, layer, where each neuron in the layer
 // is connected to each neuron from the previous and next layers
-typedef struct dense_layer_f32
+struct DenseLayer
 {
-    mat_f32 weights;
-    mat_f32 biases;
-    mat_f32 output;
-} dense_layer_f32;
+    mat<f32> weights;
+    vec<f32> biases;
+    mat<f32> output;
 
-dense_layer_f32 dense_layer_f32_init(usize inputs, usize neurons);
-void dense_layer_f32_forward(dense_layer_f32* layer, mat_f32 input);
+    ActivationType activation;
+
+    Device device;
+};
+
+DenseLayer dense_layer_init(size inputs, size neurons, ActivationType activation=Activation_Linear,
+                            Device device=Device_CPU);
+
+void dense_layer_forward(DenseLayer* layer, mat<f32> input);

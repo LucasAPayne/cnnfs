@@ -1,10 +1,11 @@
+#pragma once
+
 /*
  * Random number generation functions for uniform and normal distributions
  * Normal (Gaussian) distribution numbers are generated using the Box-Muller method
  */
 
 #include "rng.h"
-
 #include <math.h> // sqrtf(), logf()
 
 /*
@@ -41,15 +42,22 @@
  * Only the global RNG is used since it is treated as internal state,
  * and types and functions are renamed to match this project's style.
  */
-typedef struct pcg32_rng { // Internals are *Private*.
-    u64 state;             // RNG state.  All values are possible.
-    u64 inc;               // Controls which RNG sequence (stream) is
-                           // selected. Must *always* be odd.
-} pcg32_rng;
+struct PCG32RNG
+{              // Internals are *Private*.
+    u64 state; // RNG state.  All values are possible.
+    u64 inc;   // Controls which RNG sequence (stream) is
+               // selected. Must *always* be odd.
+};
+
+struct GPURNG
+{
+    u64 seed;
+};
 
 // Make RNG global here so RNG type can be opaque to user
 #define PCG32_INITIALIZER {0x853c49e6748fea9bULL, 0xda3e39cb94b95bdbULL}
-global_variable pcg32_rng pcg32_global = PCG32_INITIALIZER;
+global PCG32RNG pcg32_global = PCG32_INITIALIZER;
+global GPURNG gpu_rng_global = {};
 
 // TODO(lucas): In the last part of the computation, rot is a u32, so taking the negative does
 // not make sense mathematically.
@@ -90,19 +98,20 @@ internal void pcg32_set_seed(u64 init_state, u64 init_seq)
 /**
  * Set seed of RNG
  */
-void rand_seed(u64 seed)
+internal void rand_seed(u64 seed)
 {
     // NOTE(lucas): For now, only the global PCG32 RNG is being used.
     // Streams are not currently being used, so set to 0 for now.
     pcg32_set_seed(seed, 0);
+    gpu_rng_global.seed = seed;
 }
 
 /**
  * Generate a random f32 in the range [min, max] from the uniform distribution
  */
-f32 rand_f32_uniform(f32 min, f32 max)
+internal f32 rand_f32_uniform(f32 min, f32 max)
 {
-    ASSERT(max > min);
+    ASSERT(max > min, "The maximum value must be greater than the minimum value.");
     f32 result = (f32)pcg32_rand() / (f32)UINT32_MAX;
     result = min + result * (max - min);
     return result;
@@ -111,19 +120,19 @@ f32 rand_f32_uniform(f32 min, f32 max)
 /**
  * Generate a random f32 from the Guassian (normal) distribution with a given mean and standard deviation.
  */
-f32 rand_f32_gauss(f32 mean, f32 std_dev)
+internal f32 rand_f32_gauss(f32 mean, f32 std_dev)
 {
     /* NOTE(lucas): Currently, the Marsaglia polar method variation of the Box-Muller method is being used.
      * This algorithm works by randomly picking points (x,y) in the square -1 < x < 1, -1 < y < 1
      * until 0 < s = x^2 + y^2 < 1. To put the points into the normal distribution,
      * they are multiplied by sqrt(-2*ln(s)/s).
-     * 
+     *
      * Ziggurat is probably a better algorithm to use here, but it is more complex. May be revisited later.
      * This algorithm generates random Gaussian numbers in pairs, so it keeps track of whether it has
      * already generated the next one and what the value of it is.
      */
-    local_persist b32 has_gauss = false;
-    local_persist f32 next_gauss = 0.0f;
+    persist b32 has_gauss = false;
+    persist f32 next_gauss = 0.0f;
     f32 result = next_gauss;
 
     // Only perform algorithm if there is no spare result
@@ -155,78 +164,8 @@ f32 rand_f32_gauss(f32 mean, f32 std_dev)
     return result;
 }
 
-f32 rand_f32_gauss_standard(void)
+internal f32 rand_f32_gauss_standard()
 {
     f32 result = rand_f32_gauss(0.0f, 1.0f);
-    return result;
-}
-
-vec_f32 rand_vec_f32_uniform(f32 min, f32 max, usize n)
-{
-    vec_f32 result = vec_f32_zeros(n);
-
-    for (usize i = 0; i < n; ++i)
-        result.data[i] = rand_f32_uniform(min, max);
-    
-    return result;
-}
-
-vec_f32 rand_vec_f32_gauss(f32 mean, f32 std_dev, usize n)
-{
-    vec_f32 result = vec_f32_zeros(n);
-
-    for (usize i = 0; i < n; ++i)
-        result.data[i] = rand_f32_gauss(mean, std_dev);
-
-    return result;
-}
-
-vec_f32 rand_vec_f32_gauss_standard(usize n)
-{
-    vec_f32 result = vec_f32_zeros(n);
-
-    for (usize i = 0; i < n; ++i)
-        result.data[i] = rand_f32_gauss_standard();
-
-    return result;
-}
-
-mat_f32 rand_mat_f32_uniform(f32 min, f32 max, usize rows, usize cols)
-{
-    // TODO(lucas): Use set row/col range?
-    mat_f32 result = mat_f32_zeros(rows, cols);
-
-    for (usize row = 0; row < rows; ++row)
-    {
-        for (usize col = 0; col < cols; ++col)
-           mat_f32_set_val(&result, row, col, rand_f32_uniform(min, max));
-    }
-    
-    return result;
-}
-
-mat_f32 rand_mat_f32_gauss(f32 mean, f32 std_dev, usize rows, usize cols)
-{
-    mat_f32 result = mat_f32_zeros(rows, cols);
-
-    for (usize row = 0; row < rows; ++row)
-    {
-        for (usize col = 0; col < cols; ++col)
-           mat_f32_set_val(&result, row, col, rand_f32_gauss(mean, std_dev));
-    }
-    
-    return result;
-}
-
-mat_f32 rand_mat_f32_gauss_standard(usize rows, usize cols)
-{
-    mat_f32 result = mat_f32_zeros(rows, cols);
-
-    for (usize row = 0; row < rows; ++row)
-    {
-        for (usize col = 0; col < cols; ++col)
-           mat_f32_set_val(&result, row, col, rand_f32_gauss_standard());
-    }
-    
     return result;
 }
